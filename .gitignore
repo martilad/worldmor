@@ -1,0 +1,7 @@
+.idea
+__venv__
+build
+*egg*
+*.so
+*.c
+__pycache__
