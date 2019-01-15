@@ -18,6 +18,7 @@ class GridWidget(QtWidgets.QWidget):
     def pixels_to_logical(self, x, y):
         """
         Convert pixels to logical size of the field.
+
         :return: number of the field in the game
         """
         return y // self.cell_size, x // self.cell_size
@@ -25,6 +26,7 @@ class GridWidget(QtWidgets.QWidget):
     def logical_to_pixels(self, row, column):
         """
         Convert from a logical field in the game to the pixel to paint color or image.
+
         :return: pixels in grid
         """
         return column * self.cell_size, row * self.cell_size
@@ -120,7 +122,7 @@ class App:
         self.app = QtWidgets.QApplication([])
 
         # TODO: how big create on init
-        self.worldmor = Worldmor(200, 200, 100, 100)
+        self.worldmor = Worldmor(1000, 1000, 500, 500)
 
         self.window = myWindow()
         self.window.setWindowIcon(QtGui.QIcon(App.get_img_path("worldmor.svg")))
@@ -145,6 +147,7 @@ class App:
     def get_gui_path(file_name):
         """
         Create a complete path for gui part file.
+
         :param file_name: name of the *.ui part to import
         :return: complete path to gui part *.ui
         """
@@ -154,6 +157,7 @@ class App:
     def get_img_path(file_name):
         """
         Create a complete path for image file specific to import to the application.
+
         :param file_name: name of the picture to import
         :return: the complete path to the image
         """
