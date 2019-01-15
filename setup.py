@@ -1,6 +1,6 @@
 from setuptools import setup
 from Cython.Build import cythonize
-from setuptools import setup, find_packages
+from setuptools import find_packages
 import numpy
 
 with open('README.rst') as f:
@@ -20,7 +20,7 @@ setup(
     ext_modules=cythonize('worldmor/worldmor.pyx', language_level=3),
     include_dirs=[numpy.get_include()],
     install_requires=[
-        'NumPy',
+        'numpy>=1.12.0',
         'Cython',
         'Sphinx',
         'pytest',
@@ -28,7 +28,7 @@ setup(
     ],
     setup_requires=[
         'Cython',
-        'NumPy',
+        'numpy>=1.12.0',
         'pytest-runner',
     ],
     entry_points={

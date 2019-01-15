@@ -4,6 +4,8 @@ from worldmor.worldmor import Worldmor
 from worldmor.constants import CELL_SIZE, MAX_CELL_SIZE, MIN_CELL_SIZE, ZOOM_CELL_STEP
 
 
+# TODO: thread which will do time moments in this app. This app only set the move need or gun.
+
 class GridWidget(QtWidgets.QWidget):
 
     def __init__(self, worldmor):
@@ -34,12 +36,14 @@ class GridWidget(QtWidgets.QWidget):
         The event called when changing the game map or when the size of the game is change.
         """
         row_max, col_max = self.pixels_to_logical(self.width(), self.height())
+
         row_max += 1
         col_max += 1
 
         painter = QtGui.QPainter(self)
 
         # TODO: do part of get map, if big changes get new map, not always
+        w_map = self.worldmor.get_map(row_max, col_max)
 
         for row in range(0, row_max):
             for column in range(0, col_max):
@@ -50,9 +54,18 @@ class GridWidget(QtWidgets.QWidget):
                 rect = QtCore.QRectF(x, y, self.cell_size, self.cell_size)
 
                 # render some color
-                painter.fillRect(rect, QtGui.QColor(min(255, (row+column)*2),
-                                                    min(255, (row+column)*2),
-                                                    min(255, (row+column)*2)))
+                if w_map[row, column] == 0:
+                    painter.fillRect(rect, QtGui.QColor(100, 0, 0))
+                elif w_map[row, column] == 1:
+                    painter.fillRect(rect, QtGui.QColor(0, 100, 0))
+                elif w_map[row, column] == 2:
+                    painter.fillRect(rect, QtGui.QColor(0, 0, 100))
+                elif w_map[row, column] == 3:
+                    painter.fillRect(rect, QtGui.QColor(100, 100, 100))
+                else:
+                    print("Error")
+                    exit(-1)
+
 
     def wheelEvent(self, event):
         """
@@ -82,8 +95,16 @@ class myWindow(QtWidgets.QMainWindow):
         self.worldmor = None
 
     def keyPressEvent(self, e):
-        if e.key() == QtCore.Qt.Key_Space:
-            self.grid.tick()
+        """Catch key press event and do move."""
+        if e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_A:
+            self.worldmor.left()
+        if e.key() == QtCore.Qt.Key_Right or e.key() == QtCore.Qt.Key_D:
+            self.worldmor.right()
+        if e.key() == QtCore.Qt.Key_Up or e.key() == QtCore.Qt.Key_W:
+            self.worldmor.up()
+        if e.key() == QtCore.Qt.Key_Down or e.key() == QtCore.Qt.Key_S:
+            self.worldmor.down()
+        self.grid.update()
 
 
 class App:
@@ -98,7 +119,8 @@ class App:
         """
         self.app = QtWidgets.QApplication([])
 
-        self.worldmor = Worldmor()
+        # TODO: how big create on init
+        self.worldmor = Worldmor(200, 200, 100, 100)
 
         self.window = myWindow()
         self.window.setWindowIcon(QtGui.QIcon(App.get_img_path("worldmor.svg")))
@@ -110,6 +132,7 @@ class App:
         # create and add grid
         self.grid = GridWidget(self.worldmor)
         self.window.grid = self.grid
+        self.window.worldmor = self.worldmor
         self.window.setCentralWidget(self.grid)
 
         # TODO: bind action for save, new, load, etc...
