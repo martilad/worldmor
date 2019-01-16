@@ -69,7 +69,6 @@ class GridWidget(QtWidgets.QWidget):
                     print("Error")
                     exit(-1)
 
-
     def wheelEvent(self, event):
         """
         Method called when the user uses the wheel. Need check ctrl for zoom.
@@ -151,8 +150,17 @@ class App:
         self.window.menuBar().setVisible(True)
 
     def new_dialog(self):
-        print("new dialog")
-        # TODO: ask if want new game
+        """
+        Show question dialog if you really want create new game and eventually create it.
+        """
+        reply = QtWidgets.QMessageBox.question(self.window, 'New?',
+                                               'Are you really want new game?',
+                                               QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if reply == QtWidgets.QMessageBox.Yes:
+            self.worldmor = Worldmor(1000, 1000, 500, 500)
+            self.grid.worldmor = self.worldmor
+            self.window.worldmor = self.worldmor
+            self.grid.update()
 
     def load_dialog(self):
         print("load dialog")
@@ -167,8 +175,14 @@ class App:
         # TODO: save dialog
 
     def exit_dialog(self):
-        # TODO: ask if really want
-        self.window.close()
+        """
+        Show question dialog if you really want to exit and eventually end the application.
+        """
+        reply = QtWidgets.QMessageBox.question(self.window, 'Exit?',
+                                               'Are you really want exit the game?',
+                                               QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if reply == QtWidgets.QMessageBox.Yes:
+            self.window.close()
 
     def fullscreen(self):
         print("fullscrean")
