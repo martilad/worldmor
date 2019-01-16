@@ -108,6 +108,12 @@ class myWindow(QtWidgets.QMainWindow):
             self.worldmor.down()
         self.grid.update()
 
+    def show_score_and_live(self, score, live):
+        """
+        Show score and live in status bar.
+        """
+        self.statusBar.showMessage("Score: %s    Live: %s" % (int(score), int(live)))
+
 
 class App:
     """Class of the main loop of PyQt application."""
@@ -146,8 +152,11 @@ class App:
         self.action_bind('actionFullscreen', lambda: self.fullscreen())
 
         self.action_bind('actionAbout', lambda: self.about_dialog())
+
         # TODO: need dialog after game, some with score or leader bord maybe?
+
         self.window.menuBar().setVisible(True)
+        self.window.show_score_and_live(0,0)
 
     def new_dialog(self):
         """
