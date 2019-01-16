@@ -137,11 +137,58 @@ class App:
         self.window.worldmor = self.worldmor
         self.window.setCentralWidget(self.grid)
 
-        # TODO: bind action for save, new, load, etc...
-        # TODO: need for do fullscreen mode
+        self.action_bind('actionNew', lambda: self.new_dialog())
+        self.action_bind('actionLoad', lambda: self.load_dialog())
+        self.action_bind('actionSave', lambda: self.save_dialog())
+        self.action_bind('actionSave_As', lambda: self.save_as_dialog())
+        self.action_bind('actionExit', lambda: self.exit_dialog())
+
+        self.action_bind('actionFullscreen', lambda: self.fullscreen())
+
+        self.action_bind('actionAbout', lambda: self.about_dialog())
+        # TODO: need dialog after game, some with score or leader bord maybe?
+        self.window.menuBar().setVisible(True)
+
+    def new_dialog(self):
+        print("new dialog")
+        # TODO: ask if want new game
+
+    def load_dialog(self):
+        print("load dialog")
+        # TODO: normal load file dialog - check format
+
+    def save_dialog(self):
+        print("save dialog")
+        # TODO: save if file is known, or open file save dialog as save as
+
+    def save_as_dialog(self):
+        print("save as dialog")
+        # TODO: save dialog
+
+    def exit_dialog(self):
+        # TODO: ask if really want
+        self.window.close()
+
+    def fullscreen(self):
+        print("fullscrean")
         # self.window.showFullScreen()
         # self.window.showMaximized()
         self.window.menuBar().setVisible(True)
+        # TODO: switch to fullscreen mode
+
+    def about_dialog(self):
+        print("about window")
+        # TODO: show about dialog
+
+    def action_bind(self, name, func):
+        """
+        Find function in QMAinWindow layout as child and bind to it the action.
+
+        :param name: name of child in gui
+        :param func: function to bind
+        """
+        action = self.window.findChild(QtWidgets.QAction, name)
+        action.triggered.connect(func)
 
     @staticmethod
     def get_gui_path(file_name):
