@@ -2,6 +2,7 @@ import os
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
 from worldmor.worldmor import Worldmor
 from worldmor.constants import CELL_SIZE, MAX_CELL_SIZE, MIN_CELL_SIZE, ZOOM_CELL_STEP
+from worldmor.about import ABOUT
 
 
 # TODO: thread which will do time moments in this app. This app only set the move need or gun.
@@ -177,8 +178,10 @@ class App:
         # TODO: switch to fullscreen mode
 
     def about_dialog(self):
-        print("about window")
-        # TODO: show about dialog
+        """
+        Show about dialog save in about.py.
+        """
+        QtWidgets.QMessageBox.about(self.window, "WorldMor", ABOUT)
 
     def action_bind(self, name, func):
         """

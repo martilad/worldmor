@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>WorldMor</string>
   </property>
   <widget class="QWidget" name="mainWidget"/>
   <widget class="QMenuBar" name="menubar">
