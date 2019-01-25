@@ -1,7 +1,7 @@
 import os
-from PyQt5 import QtWidgets, QtCore, QtGui, uic
+from PyQt5 import QtWidgets, QtCore, QtGui, QtSvg, uic
 from worldmor.worldmor import Worldmor
-from worldmor.constants import CELL_SIZE, MAX_CELL_SIZE, MIN_CELL_SIZE, ZOOM_CELL_STEP
+from worldmor.constants import CELL_SIZE, MAX_CELL_SIZE, MIN_CELL_SIZE, ZOOM_CELL_STEP, PICTURES
 from worldmor.about import ABOUT
 
 
@@ -9,9 +9,9 @@ from worldmor.about import ABOUT
 
 class GridWidget(QtWidgets.QWidget):
 
-    def __init__(self, worldmor):
+    def __init__(self, worldmor, images):
         super().__init__()
-        # TODO: constants
+        self.images = images
         self.cell_size = CELL_SIZE
         self.worldmor = worldmor
         self.setMinimumSize(*self.logical_to_pixels(3, 3))
@@ -44,6 +44,8 @@ class GridWidget(QtWidgets.QWidget):
         col_max += 1
 
         painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        print(painter.renderHints())
 
         # TODO: do part of get map, if big changes get new map, not always
         w_map = self.worldmor.get_map(row_max, col_max)
@@ -55,20 +57,37 @@ class GridWidget(QtWidgets.QWidget):
                 x, y = self.logical_to_pixels(row, column)
 
                 rect = QtCore.QRectF(x, y, self.cell_size, self.cell_size)
-
+                # TODO: render picture based on codes in map.
                 # render some color
                 if w_map[row, column] == 0:
-                    painter.fillRect(rect, QtGui.QColor(100, 0, 0))
+                    ...
+                    painter.drawImage(rect, self.images['grass']);
+                    #self.images['grass'].render(painter, rect)
                 elif w_map[row, column] == 1:
-                    painter.fillRect(rect, QtGui.QColor(0, 100, 0))
+                    ...
+                    painter.drawImage(rect, self.images['grass']);
+                    painter.drawImage(rect, self.images['wall']);
+                    #self.images['grass'].render(painter, rect)
+                    #self.images['wall'].render(painter, rect)
                 elif w_map[row, column] == 2:
-                    painter.fillRect(rect, QtGui.QColor(0, 0, 100))
+                    ...
+                    painter.drawImage(rect, self.images['grass']);
+                    #self.images['grass'].render(painter, rect)
                 elif w_map[row, column] == 3:
-                    painter.fillRect(rect, QtGui.QColor(100, 100, 100))
+                    ...
+                    painter.drawImage(rect, self.images['grass']);
+                    painter.drawImage(rect, self.images['e4']);
+                    painter.drawImage(QtCore.QRectF(x+30, y+30, self.cell_size-30, self.cell_size-30), self.images['g5']);
+                    #self.images['grass'].render(painter, rect)
+                    #self.images['e4'].render(painter, rect)
+                    # TODO: render smaller guns
+                    #self.images['g5'].render(painter, QtCore.QRectF(x+30, y+30, self.cell_size-30, self.cell_size-30))
+                    # TODO: render live bar, use in code
                 else:
                     print("Error")
                     exit(-1)
-
+                #painter.drawImage(QtCore.QPointF(0, 0), self.images['blood']);
+                #self.images['blood'].render(painter)
     def wheelEvent(self, event):
         """
         Method called when the user uses the wheel. Need check ctrl for zoom.
@@ -137,8 +156,12 @@ class App:
         with open(App.get_gui_path('mainwindow.ui')) as f:
             uic.loadUi(f, self.window)
 
+        self.images = {}
+        for i in PICTURES:
+            self.images[i] = App.create_as_qt_svg(i + ".svg")
+
         # create and add grid
-        self.grid = GridWidget(self.worldmor)
+        self.grid = GridWidget(self.worldmor, images=self.images)
         self.window.grid = self.grid
         self.window.worldmor = self.worldmor
         self.window.setCentralWidget(self.grid)
@@ -152,6 +175,9 @@ class App:
         self.action_bind('actionFullscreen', lambda: self.fullscreen())
 
         self.action_bind('actionAbout', lambda: self.about_dialog())
+
+
+
 
         # TODO: need dialog after game, some with score or leader bord maybe?
 
@@ -215,6 +241,12 @@ class App:
         """
         action = self.window.findChild(QtWidgets.QAction, name)
         action.triggered.connect(func)
+
+    @staticmethod
+    def create_as_qt_svg(file_name):
+        # TODO: render svg is too slow need only paint pixels
+        return QtGui.QIcon(App.get_img_path(file_name)).pixmap(QtCore.QSize(300, 300)).toImage()
+        #return QtSvg.QSvgRenderer(App.get_img_path(file_name))
 
     @staticmethod
     def get_gui_path(file_name):

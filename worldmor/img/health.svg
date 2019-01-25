@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.0" viewBox="0 0 30 22" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<rect width="30" height="22" rx="2" ry="2" fill="#7f7f7f"/>
+<rect x="2" y="2" width="26" height="18" rx="1.5" ry="1.5" fill="#fefefe"/>
+<path d="m8.5312 2l-6.5312 9.797v5.953c0 0.11 0.0213 0.223 0.0312 0.328l10.719-16.078h-4.2188zm8.4688 0l-12 18h7.062l12.032-18h-7.094zm11 2.5781l-10.281 15.422h2.843l7.438-11.156v-4.2659z" fill="#e6e6e6"/>
+<path d="m6 3v3h-3v4h3v3h4v-3h3v-4h-3v-3h-4z" fill="#f00"/>
+<path d="m14 0v14h-14v2h14v6h2v-6h14v-2h-14v-14h-2z" fill-opacity=".4633"/>
+<metadata>
+<rdf:RDF>
+<cc:Work>
+<dc:format>image/svg+xml</dc:format>
+<dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+<cc:license rdf:resource="http://creativecommons.org/licenses/publicdomain/"/>
+<dc:publisher>
+<cc:Agent rdf:about="http://openclipart.org/">
+<dc:title>Openclipart</dc:title>
+</cc:Agent>
+</dc:publisher>
+<dc:title>Simple space platform game stuff 4</dc:title>
+<dc:date>2006-12-26T00:00:00</dc:date>
+<dc:description/>
+<dc:source>https://openclipart.org/detail/24564/-by--24564</dc:source>
+<dc:creator>
+<cc:Agent>
+<dc:title>qubodup</dc:title>
+</cc:Agent>
+</dc:creator>
+</cc:Work>
+<cc:License rdf:about="http://creativecommons.org/licenses/publicdomain/">
+<cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+<cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+<cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+</cc:License>
+</rdf:RDF>
+</metadata>
+</svg>

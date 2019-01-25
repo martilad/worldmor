@@ -37,7 +37,7 @@ cdef class Worldmor:
             self.map[i] = <int *> PyMem_Malloc(self.cols*sizeof(int))
             for j in range(cols):
                 # TODO: need generate map base on some probability (no cycle of wall check)
-                self.map[i][j] = (rand() % 3) + 1
+                self.map[i][j] = (rand() % 3)
 
     def __dealloc__(self):
         free_mem(self.map, self.rows)
@@ -85,7 +85,7 @@ cdef class Worldmor:
         for i in range(row):
             for j in range(col):
                 if co.row_min+i == self.pos_row and co.col_min+j == self.pos_col:
-                    map_view[i, j] = 0
+                    map_view[i, j] = 3
                 else:
                     map_view[i, j] = self.map[co.row_min+i][co.col_min+j]
         return map_view
@@ -107,7 +107,7 @@ cdef class Worldmor:
             # new second part is need to generate
             for j in range(self.cols, new_cols, 1):
                 # TODO: need generate map base on some probability (no cycle of wall check)
-                tmp[j] = (rand() % 3) + 1
+                tmp[j] = (rand() % 3)
             PyMem_Free(self.map[i])
             self.map[i] = tmp
         self.cols = new_cols
@@ -127,7 +127,7 @@ cdef class Worldmor:
             # first part need to generate, down reach..
             for j in range(self.cols):
                 # TODO: need generate map base on some probability (no cycle of wall check)
-                tmp[j] = (rand() % 3) + 1
+                tmp[j] = (rand() % 3)
             # the next part only copy
             for j in range(self.cols, new_cols, 1):
                 tmp[j] = self.map[i][j-self.cols]
@@ -151,7 +151,7 @@ cdef class Worldmor:
             tmp[i] = <int *> PyMem_Malloc(self.cols*sizeof(int))
             for j in range(self.cols):
                 # TODO: need generate map base on some probability (no cycle of wall check)
-                tmp[i][j] = (rand() % 3) + 1
+                tmp[i][j] = (rand() % 3)
         # the next part only copy
         for i in range(self.rows, new_rows, 1):
             tmp[i] = self.map[i-self.rows]
@@ -177,7 +177,7 @@ cdef class Worldmor:
             tmp[i] = <int *> PyMem_Malloc(self.cols*sizeof(int))
             for j in range(self.cols):
                 # TODO: need generate map base on some probability (no cycle of wall check)
-                tmp[i][j] = (rand() % 3) + 1
+                tmp[i][j] = (rand() % 3)
         PyMem_Free(self.map)
         self.map = tmp
         self.rows = new_rows
