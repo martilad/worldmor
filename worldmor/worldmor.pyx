@@ -6,6 +6,7 @@ cimport cython
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.stdlib cimport rand, RAND_MAX
+from libc.math cimport sin, cos, acos, exp, sqrt, fabs, M_PI, abs
 
 cpdef enum:
     # Enum for items, players and environments of the map.
@@ -27,11 +28,28 @@ cpdef enum:
     GUN_3 = 15
     GUN_E = 16
 
+"""Start zone where are no items generated."""
+cdef int STARTING_PROTECTION_ZONE = 4
+
+"""The base probability of wall.
+ 
+Calculate as p=WALL_BASE_PROBABILITY/(WALL_DIVIDER_BASE^walls-1)
+
+Walls is the count of wall rectangles in the neighbor.
+
+-1 is for decrease probability when no wall in neighbor and increase when 
+near is one wall (creatins walls not clumps)"""
+cdef double WALL_BASE_PROBABILITY = 0.45
+
+"""Base in divider. The formula described in WALL_BASE_PROBABILITY comment above."""
+cdef double WALL_DIVIDER_BASE = 3
+
 cdef struct coords:
     int row_min
     int row_max
     int col_min
     int col_max
+
 
 
 # TODO: Write game logic
@@ -46,8 +64,44 @@ cdef class Worldmor:
     cdef int mid_row
     cdef int mid_col
 
-    def __cinit__(self, int rows):
+    cdef double bullets_exponent
+    cdef double bullets_multiply
+    cdef double bullets_max_prob
+
+    cdef double health_exponent
+    cdef double health_multiply
+    cdef double health_max_prob
+
+    cdef double enemy_start_probability
+    cdef double enemy_distance_divider
+    cdef double enemy_max_prob
+
+    cdef double guns_exponent
+    cdef double guns_multiply
+    cdef double guns_max_prob
+
+    def __cinit__(self, int rows, double bullets_exponent, double bullets_multiply,
+                  double bullets_max_prob, double health_exponent, double health_multiply, double health_max_prob,
+                  double enemy_start_probability, double enemy_distance_divider, double enemy_max_prob,
+                  double guns_exponent, double guns_multiply, double guns_max_prob):
         """Init"""
+
+        self.bullets_exponent = bullets_exponent
+        self.bullets_multiply = bullets_multiply
+        self.bullets_max_prob = bullets_max_prob
+
+        self.health_exponent = health_exponent
+        self.health_multiply = health_multiply
+        self.health_max_prob = health_max_prob
+
+        self.enemy_start_probability = enemy_start_probability
+        self.enemy_distance_divider = enemy_distance_divider
+        self.enemy_max_prob = enemy_max_prob
+
+        self.guns_exponent = guns_exponent
+        self.guns_multiply = guns_multiply
+        self.guns_max_prob = guns_max_prob
+
         cdef int i, j
         self.rows = rows
         self.cols = rows
@@ -127,17 +181,23 @@ cdef class Worldmor:
         # Not do garbage near player.
         cdef int walls = self.count_near_walls(row, column)
         # TODO: From MID post can compute euclidean distance from the previous middle and shoot down probability to hard the game
-        if abs(row - self.pos_row) < 4 and abs(column - self.pos_col) < 4:
+        cdef double distance = sqrt(abs(row-self.mid_row)**2 + abs(column-self.mid_col)**2)
+        if abs(row - self.pos_row) < STARTING_PROTECTION_ZONE \
+                and abs(column - self.pos_col) < STARTING_PROTECTION_ZONE:
             return GRASS
-        if (rand()/<float>RAND_MAX) < (0.45/(3**abs(walls-1))):
+        if (rand()/<float>RAND_MAX) < (WALL_BASE_PROBABILITY/(WALL_DIVIDER_BASE**abs(walls-1))):
             return WALL
-        if (rand()/<float>RAND_MAX) < 0.03:
+        if (rand()/<float>RAND_MAX) < min(self.bullets_max_prob,
+                                          (1/(distance**self.bullets_exponent))*self.bullets_multiply):
             return BULLET
-        if (rand()/<float>RAND_MAX) < 0.01:
+        if (rand()/<float>RAND_MAX) < min(self.health_max_prob,
+                                          (1/(distance**self.health_exponent))*self.health_multiply):
             return HEALTH
-        if (rand()/<float>RAND_MAX) < 0.01:
+        if (rand()/<float>RAND_MAX) < min(self.enemy_max_prob,
+                                          self.enemy_start_probability*(distance/self.enemy_distance_divider)):
             return (rand() % (ENEMY_E-ENEMY_B)) + ENEMY_B + 1
-        if (rand()/<float>RAND_MAX) < 0.01:
+        if (rand()/<float>RAND_MAX) < min(self.guns_max_prob,
+                                          (1/(distance**self.guns_exponent))*self.guns_multiply):
             return (rand() % (GUN_E-GUN_B)) + GUN_B + 1
         return 0
 
@@ -195,7 +255,7 @@ cdef class Worldmor:
         cdef int new_cols = self.cols * 2
         cdef int * tmp
         cdef int i, j
-
+        self.mid_col += self.cols
         for i in range(self.rows):
             tmp = <int *> PyMem_Malloc(new_cols*sizeof(int))
             # first part need to generate, down reach..
@@ -207,7 +267,6 @@ cdef class Worldmor:
             PyMem_Free(self.map[i])
             self.map[i] = tmp
         self.pos_col += self.cols
-        self.mid_col += self.cols
         self.cols = new_cols
 
     cdef void refactor_rows_down(self):
@@ -218,6 +277,7 @@ cdef class Worldmor:
         cdef int new_rows = self.rows * 2
         cdef int ** tmp
         cdef int i, j
+        self.mid_row += self.rows
         tmp = <int **> PyMem_Malloc(new_rows*sizeof(int*))
         # first part need to generate, down reach..
         for i in range(self.rows):
@@ -230,7 +290,6 @@ cdef class Worldmor:
         PyMem_Free(self.map)
         self.map = tmp
         self.pos_row += self.rows
-        self.mid_row += self.rows
         self.rows = new_rows
 
     cdef void refactor_rows_up(self):

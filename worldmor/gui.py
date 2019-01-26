@@ -62,9 +62,7 @@ class GridWidget(QtWidgets.QWidget):
                 painter.drawImage(rect, self.images[GRASS])
 
                 # Render pictures
-                if w_map[row, column] == GRASS:
-                    ... # TODO: can delete
-                elif w_map[row, column] == WALL:
+                if w_map[row, column] == WALL:
                     painter.drawImage(rect, self.images[WALL])
                 elif w_map[row, column] == BLOOD:
                     painter.drawImage(rect, self.images[BLOOD])
@@ -101,9 +99,6 @@ class GridWidget(QtWidgets.QWidget):
                     painter.drawImage(rect, self.images[GUN_3])
                 elif w_map[row, column] == GUN_E:
                     painter.drawImage(rect, self.images[GUN_E])
-                else:
-                    print("Error", w_map[row, column])
-                    exit(-1)
 
     def wheelEvent(self, event):
         """Method called when the user uses the wheel. Need check ctrl for zoom."""
@@ -157,8 +152,7 @@ class App:
         """
         self.app = QtWidgets.QApplication([])
 
-        # TODO: how big create on init, test how it fast is it?
-        self.worldmor = Worldmor(START_MAP_SIZE)
+        self.create_new_world()
 
         self.window = myWindow()
         self.window.setWindowIcon(QtGui.QIcon(App.get_img_path("worldmor.svg")))
@@ -199,7 +193,7 @@ class App:
                                                'Are you really want new game?',
                                                QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
         if reply == QtWidgets.QMessageBox.Yes:
-            self.worldmor = Worldmor(START_MAP_SIZE)
+            self.create_new_world()
             self.grid.worldmor = self.worldmor
             self.window.worldmor = self.worldmor
             self.grid.update()
@@ -230,6 +224,15 @@ class App:
         # self.window.showMaximized()
         self.window.menuBar().setVisible(True)
         # TODO: switch to fullscreen mode
+
+    def create_new_world(self):
+        """Create WorldMor map with specific parameters for generating map."""
+        self.worldmor = Worldmor(rows=START_MAP_SIZE, bullets_exponent=BULLETS_EXPONENT,
+                                 bullets_multiply=BULLETS_MULTIPLY, bullets_max_prob=BULLETS_MAX_PROB,
+                                 health_exponent=HEALTH_EXPONENT, health_multiply=HEALTH_MULTIPLY,
+                                 health_max_prob=HEALTH_MAX_PROB, enemy_start_probability=ENEMY_START_PROBABILITY,
+                                 enemy_distance_divider=ENEMY_DISTANCE_DIVIDER, enemy_max_prob=ENEMY_MAX_PROB,
+                                 guns_exponent=GUNS_EXPONENT, guns_multiply=GUNS_MULTIPLY, guns_max_prob=GUNS_MAX_PROB)
 
     def about_dialog(self):
         """Show about dialog save in about.py."""
