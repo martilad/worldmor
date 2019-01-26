@@ -82,8 +82,7 @@ cdef class Worldmor:
     @cython.wraparound(False)
     @cython.boundscheck(False)
     cpdef np.ndarray[np.int64_t, ndim=2] get_map(self, int row, int col):
-        """
-        Method for obtaining and creating a viewport from the map to be displayed.
+        """Method for obtaining and creating a viewport from the map to be displayed.
         The center of map is always player.
 
         :param row: number of rows to display
@@ -167,6 +166,8 @@ cdef class Worldmor:
                     walls += 1
         return walls
 
+    cdef void refactor_cols_up(self):
+        """If the map end is reached in the columns to the right(direction) | up(array representation), 
         the method will reallocate the map so that it creates a double size of the map and generates the map.
         """
         cdef int new_cols = self.cols * 2
@@ -187,8 +188,7 @@ cdef class Worldmor:
 
 
     cdef void refactor_cols_down(self):
-        """
-        If the map end is reached in the columns to the left(direction)| down(array representation), 
+        """If the map end is reached in the columns to the left(direction)| down(array representation), 
         the method will reallocate the map so that it creates a double size of the map and generates the map.
         The new part of map is created from 0, it needs shift data and shift the position of the player.
         """
@@ -200,19 +200,18 @@ cdef class Worldmor:
             tmp = <int *> PyMem_Malloc(new_cols*sizeof(int))
             # first part need to generate, down reach..
             for j in range(self.cols):
-                # TODO: need generate map base on some probability (no cycle of wall check)
-                tmp[j] = (rand() % 3)
+                tmp[j] = self.generate_part_of_map(i, j)
             # the next part only copy
             for j in range(self.cols, new_cols, 1):
                 tmp[j] = self.map[i][j-self.cols]
             PyMem_Free(self.map[i])
             self.map[i] = tmp
         self.pos_col += self.cols
+        self.mid_col += self.cols
         self.cols = new_cols
 
     cdef void refactor_rows_down(self):
-        """
-        If the map end is reached in the rows to the up(direction)| down(array representation), 
+        """If the map end is reached in the rows to the up(direction)| down(array representation), 
         the method will reallocate the map so that it creates a double size of the map and generates the map.
         The new part of map is created from 0, it needs shift data and shift the position of the player.
         """
@@ -224,19 +223,18 @@ cdef class Worldmor:
         for i in range(self.rows):
             tmp[i] = <int *> PyMem_Malloc(self.cols*sizeof(int))
             for j in range(self.cols):
-                # TODO: need generate map base on some probability (no cycle of wall check)
-                tmp[i][j] = (rand() % 3)
+                tmp[i][j] = self.generate_part_of_map(i, j)
         # the next part only copy
         for i in range(self.rows, new_rows, 1):
             tmp[i] = self.map[i-self.rows]
         PyMem_Free(self.map)
         self.map = tmp
         self.pos_row += self.rows
+        self.mid_row += self.rows
         self.rows = new_rows
 
     cdef void refactor_rows_up(self):
-        """
-        If the map end is reached in the rows to the down(direction)| up(array representation), 
+        """If the map end is reached in the rows to the down(direction)| up(array representation), 
         the method will reallocate the map so that it creates a double size of the map and generates the map.
         """
         cdef int new_rows = self.rows * 2
@@ -258,8 +256,7 @@ cdef class Worldmor:
     @cython.nonecheck(False)
     @cython.cdivision(True)
     cdef coords get_cords_slides(self, int row, int col):
-        """
-        Method that determines the coordinates of the saved map to be displayed for the specified map size.
+        """Method that determines the coordinates of the saved map to be displayed for the specified map size.
         
         :param row: number of row to display
         :param col: number of columns to display
@@ -275,6 +272,11 @@ cdef class Worldmor:
 
 @cython.boundscheck(False)
 cdef void free_mem(int ** array, int length):
+    """Free allocated memory using malloc.
+    
+    :param array: 2D array to free
+    :param length: length of first dimension
+    """
     for i in range(length):
         PyMem_Free(array[i])
     PyMem_Free(array)

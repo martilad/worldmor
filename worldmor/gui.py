@@ -12,6 +12,7 @@ PICTURES = {"grass": GRASS, "wall": WALL, "blood": BLOOD, "player": PLAYER, "bul
 # TODO: thread which will do time moments in this app. This app only set the move need or gun.
 
 class GridWidget(QtWidgets.QWidget):
+    """GridWidget is class for render the part of map to window."""
 
     def __init__(self, worldmor, images):
         super().__init__()
@@ -21,16 +22,14 @@ class GridWidget(QtWidgets.QWidget):
         self.setMinimumSize(*self.logical_to_pixels(3, 3))
 
     def pixels_to_logical(self, x, y):
-        """
-        Convert pixels to logical size of the field.
+        """Convert pixels to logical size of the field.
 
         :return: number of the field in the game
         """
         return y // self.cell_size, x // self.cell_size
 
     def logical_to_pixels(self, row, column):
-        """
-        Convert from a logical field in the game to the pixel to paint color or image.
+        """Convert from a logical field in the game to the pixel to paint color or image.
 
         :return: pixels in grid
         """
@@ -39,19 +38,14 @@ class GridWidget(QtWidgets.QWidget):
     # TODO: some logic to do moves, discrete time
 
     def paintEvent(self, event):
-        """
-        The event called when changing the game map or when the size of the game is change.
-        """
+        """The event called when changing the game map or when the size of the game is change."""
         row_max, col_max = self.pixels_to_logical(self.width(), self.height())
 
         row_max += 1
         col_max += 1
 
         painter = QtGui.QPainter(self)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        print(painter.renderHints())
 
-        # TODO: do part of get map, if big changes get new map, not always
         w_map = self.worldmor.get_map(row_max, col_max)
 
         for row in range(0, row_max):
@@ -112,9 +106,7 @@ class GridWidget(QtWidgets.QWidget):
                     exit(-1)
 
     def wheelEvent(self, event):
-        """
-        Method called when the user uses the wheel. Need check ctrl for zoom.
-        """
+        """Method called when the user uses the wheel. Need check ctrl for zoom."""
         modifiers = QtGui.QGuiApplication.keyboardModifiers()
         if modifiers == QtCore.Qt.ControlModifier:
             # check scroll wheel direction
@@ -129,9 +121,7 @@ class GridWidget(QtWidgets.QWidget):
 
 
 class myWindow(QtWidgets.QMainWindow):
-    """
-    Main application window.
-    """
+    """Main application window."""
 
     def __init__(self):
         super().__init__()
@@ -150,19 +140,17 @@ class myWindow(QtWidgets.QMainWindow):
             self.worldmor.down()
         self.grid.update()
 
-    def show_score_and_live(self, score, live):
-        """
-        Show score and live in status bar.
-        """
-        self.statusBar.showMessage("Score: %s    Live: %s" % (int(score), int(live)))
+    def show_score_and_live(self, score, live, bullets):
+        """Show score, live and number of bullets in status bar."""
+        self.statusBar.showMessage("Score: %s    Live: %s   Bullets: %s" % (int(score), int(live), int(bullets)))
 
 
 class App:
     """Class of the main loop of PyQt application."""
 
     def __init__(self):
-        """
-        Init class - create the window and load layout for it.
+        """Init class - create the window and load layout for it.
+
         - create game instance
         - create grid widget to display game
         - load dialogs and images
@@ -189,6 +177,7 @@ class App:
         self.window.worldmor = self.worldmor
         self.window.setCentralWidget(self.grid)
 
+        # bind menu actions
         self.action_bind('actionNew', lambda: self.new_dialog())
         self.action_bind('actionLoad', lambda: self.load_dialog())
         self.action_bind('actionSave', lambda: self.save_dialog())
@@ -202,12 +191,10 @@ class App:
         # TODO: need dialog after game, some with score or leader bord maybe?
 
         self.window.menuBar().setVisible(True)
-        self.window.show_score_and_live(0,0)
+        self.window.show_score_and_live(0, 100, 1000)
 
     def new_dialog(self):
-        """
-        Show question dialog if you really want create new game and eventually create it.
-        """
+        """Show question dialog if you really want create new game and eventually create it."""
         reply = QtWidgets.QMessageBox.question(self.window, 'New?',
                                                'Are you really want new game?',
                                                QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
@@ -230,9 +217,7 @@ class App:
         # TODO: save dialog
 
     def exit_dialog(self):
-        """
-        Show question dialog if you really want to exit and eventually end the application.
-        """
+        """Show question dialog if you really want to exit and eventually end the application."""
         reply = QtWidgets.QMessageBox.question(self.window, 'Exit?',
                                                'Are you really want exit the game?',
                                                QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
@@ -240,21 +225,18 @@ class App:
             self.window.close()
 
     def fullscreen(self):
-        print("fullscrean")
+        print("fullscreen")
         # self.window.showFullScreen()
         # self.window.showMaximized()
         self.window.menuBar().setVisible(True)
         # TODO: switch to fullscreen mode
 
     def about_dialog(self):
-        """
-        Show about dialog save in about.py.
-        """
+        """Show about dialog save in about.py."""
         QtWidgets.QMessageBox.about(self.window, "WorldMor", ABOUT)
 
     def action_bind(self, name, func):
-        """
-        Find function in QMAinWindow layout as child and bind to it the action.
+        """Find function in QMAinWindow layout as child and bind to it the action.
 
         :param name: name of child in gui
         :param func: function to bind
@@ -277,8 +259,7 @@ class App:
 
     @staticmethod
     def get_gui_path(file_name):
-        """
-        Create a complete path for gui part file.
+        """Create a complete path for gui part file.
 
         :param file_name: name of the *.ui part to import
         :return: complete path to gui part *.ui
@@ -287,8 +268,7 @@ class App:
 
     @staticmethod
     def get_img_path(file_name):
-        """
-        Create a complete path for image file specific to import to the application.
+        """Create a complete path for image file specific to import to the application.
 
         :param file_name: name of the picture to import
         :return: the complete path to the image
@@ -296,9 +276,7 @@ class App:
         return os.path.normpath(os.path.join(os.path.dirname(__file__), 'img', file_name))
 
     def run(self):
-        """
-        Displaying the initialized window and preparing the game.
-        """
+        """Displaying the initialized window and preparing the game."""
         self.window.show()
         return self.app.exec()
 
