@@ -1,8 +1,12 @@
 import os
-from PyQt5 import QtWidgets, QtCore, QtGui, QtSvg, uic
-from worldmor.worldmor import Worldmor
-from worldmor.constants import CELL_SIZE, MAX_CELL_SIZE, MIN_CELL_SIZE, ZOOM_CELL_STEP, PICTURES
+from PyQt5 import QtWidgets, QtCore, QtGui, uic
+from worldmor.worldmor import *
 from worldmor.about import ABOUT
+from worldmor.constants import *
+
+PICTURES = {"grass": GRASS, "wall": WALL, "blood": BLOOD, "player": PLAYER, "bullet": BULLET,
+            "health": HEALTH, "e1": ENEMY_B, "e2": ENEMY_1, "e3": ENEMY_2, "e4": ENEMY_E,
+            "g1": GUN_B, "g2": GUN_1, "g3": GUN_2, "g4": GUN_3, "g5": GUN_E}
 
 
 # TODO: thread which will do time moments in this app. This app only set the move need or gun.
@@ -57,37 +61,56 @@ class GridWidget(QtWidgets.QWidget):
                 x, y = self.logical_to_pixels(row, column)
 
                 rect = QtCore.QRectF(x, y, self.cell_size, self.cell_size)
+
                 # TODO: render picture based on codes in map.
-                # render some color
-                if w_map[row, column] == 0:
-                    ...
-                    painter.drawImage(rect, self.images['grass']);
-                    #self.images['grass'].render(painter, rect)
-                elif w_map[row, column] == 1:
-                    ...
-                    painter.drawImage(rect, self.images['grass']);
-                    painter.drawImage(rect, self.images['wall']);
-                    #self.images['grass'].render(painter, rect)
-                    #self.images['wall'].render(painter, rect)
-                elif w_map[row, column] == 2:
-                    ...
-                    painter.drawImage(rect, self.images['grass']);
-                    #self.images['grass'].render(painter, rect)
-                elif w_map[row, column] == 3:
-                    ...
-                    painter.drawImage(rect, self.images['grass']);
-                    painter.drawImage(rect, self.images['e4']);
-                    painter.drawImage(QtCore.QRectF(x+30, y+30, self.cell_size-30, self.cell_size-30), self.images['g5']);
-                    #self.images['grass'].render(painter, rect)
-                    #self.images['e4'].render(painter, rect)
+
+                # Grass render on whole map
+                painter.drawImage(rect, self.images[GRASS])
+
+                # Render pictures
+                if w_map[row, column] == GRASS:
+                    ... # TODO: can delete
+                elif w_map[row, column] == WALL:
+                    painter.drawImage(rect, self.images[WALL])
+                elif w_map[row, column] == BLOOD:
+                    painter.drawImage(rect, self.images[BLOOD])
+                elif w_map[row, column] == PLAYER:
+                    painter.drawImage(rect, self.images[PLAYER])
+                    painter.drawImage(QtCore.QRectF(x + 30, y + 30, self.cell_size - 30, self.cell_size - 30),
+                                      self.images[GUN_B])
                     # TODO: render smaller guns
-                    #self.images['g5'].render(painter, QtCore.QRectF(x+30, y+30, self.cell_size-30, self.cell_size-30))
                     # TODO: render live bar, use in code
+                elif w_map[row, column] == BULLET:
+                    painter.drawImage(QtCore.QRectF(x, y, self.cell_size, self.cell_size), self.images[BULLET])
+                    painter.drawImage(QtCore.QRectF(x - self.cell_size / 4, y, self.cell_size, self.cell_size),
+                                      self.images[BULLET])
+                    painter.drawImage(QtCore.QRectF(x + self.cell_size / 4, y, self.cell_size, self.cell_size),
+                                      self.images[BULLET])
+                elif w_map[row, column] == HEALTH:
+                    painter.drawImage(QtCore.QRectF(x + 15, y + 15, self.cell_size - 30, self.cell_size - 40),
+                                      self.images[HEALTH])
+                elif w_map[row, column] == ENEMY_B:
+                    painter.drawImage(rect, self.images[ENEMY_B])
+                elif w_map[row, column] == ENEMY_1:
+                    painter.drawImage(rect, self.images[ENEMY_1])
+                elif w_map[row, column] == ENEMY_2:
+                    painter.drawImage(rect, self.images[ENEMY_2])
+                elif w_map[row, column] == ENEMY_E:
+                    painter.drawImage(rect, self.images[ENEMY_E])
+                elif w_map[row, column] == GUN_B:
+                    painter.drawImage(rect, self.images[GUN_B])
+                elif w_map[row, column] == GUN_1:
+                    painter.drawImage(rect, self.images[GUN_1])
+                elif w_map[row, column] == GUN_2:
+                    painter.drawImage(rect, self.images[GUN_2])
+                elif w_map[row, column] == GUN_3:
+                    painter.drawImage(rect, self.images[GUN_3])
+                elif w_map[row, column] == GUN_E:
+                    painter.drawImage(rect, self.images[GUN_E])
                 else:
-                    print("Error")
+                    print("Error", w_map[row, column])
                     exit(-1)
-                #painter.drawImage(QtCore.QPointF(0, 0), self.images['blood']);
-                #self.images['blood'].render(painter)
+
     def wheelEvent(self, event):
         """
         Method called when the user uses the wheel. Need check ctrl for zoom.
@@ -146,8 +169,8 @@ class App:
         """
         self.app = QtWidgets.QApplication([])
 
-        # TODO: how big create on init
-        self.worldmor = Worldmor(1000, 1000, 500, 500)
+        # TODO: how big create on init, test how it fast is it?
+        self.worldmor = Worldmor(START_MAP_SIZE)
 
         self.window = myWindow()
         self.window.setWindowIcon(QtGui.QIcon(App.get_img_path("worldmor.svg")))
@@ -158,7 +181,7 @@ class App:
 
         self.images = {}
         for i in PICTURES:
-            self.images[i] = App.create_as_qt_svg(i + ".svg")
+            self.images[PICTURES[i]] = App.render_pixmap_from_svg(str(i) + ".svg", RENDER_RECT_SIZE)
 
         # create and add grid
         self.grid = GridWidget(self.worldmor, images=self.images)
@@ -176,9 +199,6 @@ class App:
 
         self.action_bind('actionAbout', lambda: self.about_dialog())
 
-
-
-
         # TODO: need dialog after game, some with score or leader bord maybe?
 
         self.window.menuBar().setVisible(True)
@@ -192,7 +212,7 @@ class App:
                                                'Are you really want new game?',
                                                QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
         if reply == QtWidgets.QMessageBox.Yes:
-            self.worldmor = Worldmor(1000, 1000, 500, 500)
+            self.worldmor = Worldmor(START_MAP_SIZE)
             self.grid.worldmor = self.worldmor
             self.window.worldmor = self.worldmor
             self.grid.update()
@@ -243,10 +263,17 @@ class App:
         action.triggered.connect(func)
 
     @staticmethod
-    def create_as_qt_svg(file_name):
-        # TODO: render svg is too slow need only paint pixels
-        return QtGui.QIcon(App.get_img_path(file_name)).pixmap(QtCore.QSize(300, 300)).toImage()
-        #return QtSvg.QSvgRenderer(App.get_img_path(file_name))
+    def render_pixmap_from_svg(file_name, render_quality):
+        """Render pixmaps from svg for fast render in game.
+
+        SVG images rendered slowly if there were a lot of them.
+        TODO: Here, in pixmap, you can choose the image quality if necessary.
+        :param file_name: file name of svg picture
+        :param render_quality: size in pixel to render from SVG
+        :return: QImage with pixmap with render_quality size
+        """
+        return QtGui.QIcon(App.get_img_path(file_name)).pixmap(QtCore.QSize(render_quality,
+                                                                            render_quality)).toImage()
 
     @staticmethod
     def get_gui_path(file_name):
