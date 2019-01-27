@@ -1,9 +1,9 @@
 
 """Default cell size in grid."""
-CELL_SIZE = 85
+CELL_SIZE = 70
 
 """Minimum cell size in grid when zoom."""
-MIN_CELL_SIZE = 75
+MIN_CELL_SIZE = 60
 
 """Minimum cell size in grid when zoom."""
 MAX_CELL_SIZE = 100

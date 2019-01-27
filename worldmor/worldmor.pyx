@@ -30,6 +30,11 @@ cpdef enum:
 
 """Start zone where are no items generated."""
 cdef int STARTING_PROTECTION_ZONE = 4
+cdef int VIEW_RANGE = 5
+cdef int MAX_BULLETS = 100
+cdef int MAX_HEALTH = 100
+cdef int BULLETS_ADD = 20
+cdef int HEALTH_ADD = 10
 
 """The base probability of wall.
  
@@ -50,11 +55,10 @@ cdef struct coords:
     int col_min
     int col_max
 
-
 cdef class Worldmor:
     """Game"""
 
-    cdef int ** map
+    cdef unsigned long long ** map
     cdef int rows
     cdef int cols
     cdef int pos_row
@@ -108,51 +112,194 @@ cdef class Worldmor:
         cdef int i, j
         self.rows = rows
         self.cols = rows
-        self.pos_row = <int>(rows/2)
-        self.pos_col = <int>(rows/2)
-        self.mid_row = <int>(rows/2)
-        self.mid_col = <int>(rows/2)
-        self.map = <int **> PyMem_Malloc(self.rows*sizeof(int*))
+        self.pos_row = <int> (rows / 2)
+        self.pos_col = <int> (rows / 2)
+        self.mid_row = <int> (rows / 2)
+        self.mid_col = <int> (rows / 2)
+        self.map = <unsigned long long **> PyMem_Malloc(self.rows * sizeof(unsigned long long*))
+
         for i in range(self.rows):
-            self.map[i] = <int *> PyMem_Malloc(self.cols*sizeof(int))
+            self.map[i] = <unsigned long long *> PyMem_Malloc(self.cols * sizeof(unsigned long long))
             for j in range(self.cols):
                 self.map[i][j] = GRASS
         for i in range(rows):
             for j in range(self.cols):
                 self.map[i][j] = self.generate_part_of_map(i, j)
+        self.map[self.pos_row][self.pos_col] = self.to_health(100) + self.to_bullets(20) + \
+                                               self.to_direction(1) + self.to_visible(1) + self.to_gun(GUN_B) + PLAYER
 
     def __dealloc__(self):
         free_mem(self.map, self.rows)
 
+    cdef unsigned long long to_health(self, unsigned long long health):
+        """Convert health value to size(code) to save in map."""
+        return health * 1000
+
+    cdef unsigned long long get_health(self, unsigned long long health):
+        """Get health value from size(code) to number for represent and work."""
+        return (<int> (health / 1000)) % 1000
+
+    cdef unsigned long long to_bullets(self, unsigned long long bullets):
+        """Convert bullets value to size(code) to save in map."""
+        return bullets * 1000000
+
+    cdef unsigned long long get_bullets(self, unsigned long long bullets):
+        """Get bullets value from size(code) to number for represent and work."""
+        return (<int> (bullets / 1000000)) % 1000
+
+    cdef unsigned long long to_visible(self, unsigned long long visible):
+        """Convert visible value to size(code) to save in map."""
+        return visible * 100
+
+    cdef unsigned long long get_visible(self, unsigned long long visible):
+        """Get visible value from size(code) to number for represent and work."""
+        return (<int> (visible / 100)) % 10
+
+    cdef unsigned long long to_direction(self, unsigned long long direction):
+        """Convert direction value to size(code) to save in map."""
+        return direction * 1000000000
+
+    cdef unsigned long long get_direction(self, unsigned long long direction):
+        """Get direction value from size(code) to number for represent and work."""
+        return (<int> (direction / 1000000000)) % 10
+
+    cdef unsigned long long to_gun(self, unsigned long long gun):
+        """Convert gun id value to size(code) to save in map."""
+        return gun * <unsigned long long>100000000000
+
+    cdef unsigned long long get_gun(self, unsigned long long gun):
+        """Get gun value from size(code) to number for represent and work."""
+        return (<int> (gun / <unsigned long long>100000000000)) % 100
+
     cpdef void left(self):
+        """Set flag to want move left."""
         self.move_flag = 4
 
     cpdef void right(self):
+        """Set flag to want move right."""
         self.move_flag = 2
 
     cpdef void up(self):
+        """Set flag to want move up."""
         self.move_flag = 1
 
     cpdef void down(self):
+        """Set flag to want move down."""
         self.move_flag = 3
 
     cpdef void shoot(self):
+        # TODO: shooting
         self.shoot_flag = 1
 
     cpdef void do_one_time_moment(self):
+        """Method for do move at a given time. 
+        Flags set between times and actions taken are checked. Even in this step, 
+        the AI will make some of their steps.
+        """
+        # check the set flags
         if self.move_flag == 1:
-            self.pos_row -= 1
+            if self.move(self.pos_row, self.pos_col, self.pos_row - 1, self.pos_col) == 1:
+                self.pos_row -= 1
+                self.map[self.pos_row][self.pos_col] += self.to_direction(1) - self.to_direction(
+                    self.get_direction(self.map[self.pos_row][self.pos_col]))
+
         elif self.move_flag == 2:
-            self.pos_col += 1
+            if self.move(self.pos_row, self.pos_col, self.pos_row, self.pos_col + 1) == 1:
+                self.pos_col += 1
+                self.map[self.pos_row][self.pos_col] += self.to_direction(2) - \
+                                                        self.to_direction(
+                                                            self.get_direction(self.map[self.pos_row][self.pos_col]))
         elif self.move_flag == 3:
-            self.pos_row += 1
+            if self.move(self.pos_row, self.pos_col, self.pos_row + 1, self.pos_col) == 1:
+                self.pos_row += 1
+                self.map[self.pos_row][self.pos_col] += self.to_direction(3) - \
+                                                        self.to_direction(
+                                                            self.get_direction(self.map[self.pos_row][self.pos_col]))
         elif self.move_flag == 4:
-            self.pos_col -= 1
+            if self.move(self.pos_row, self.pos_col, self.pos_row, self.pos_col - 1) == 1:
+                self.pos_col -= 1
+                self.map[self.pos_row][self.pos_col] += self.to_direction(4) - \
+                                                        self.to_direction(
+                                                            self.get_direction(self.map[self.pos_row][self.pos_col]))
+        if self.move_flag > 0:
+            self.recalculate_visibility()
         self.shoot_flag = 0
         self.move_flag = 0
         # TODO: Write game logic
         # TODO: Write AI levels and moves
         # TODO: Write shooting lives and health and bullets
+
+    @cython.boundscheck(False)
+    cdef int move(self, int old_row, int old_col, int new_row, int new_col):
+        """Method to perform moves at a given position, 
+        the movement is performed if there is no other character or wall. 
+        Also, some items may be collected.
+        
+        :param old_row: previous row position
+        :param old_col: previous columns position
+        :param new_row: new row position
+        :param new_col: new column position
+        :return: 1 if the character rolls or 0 if not.
+        """
+        cdef int code
+        cdef int do = 0
+        cdef unsigned long long add = 0
+
+        code = self.map[new_row][new_col] % 100
+        # check code of new field and do the steps for the character
+        if code == GRASS:
+            do = 1
+        if code == HEALTH:
+            do = 1
+            add = self.to_health(min((<int>self.get_health(self.map[old_row][old_col])) +
+                                     HEALTH_ADD, MAX_HEALTH)-self.get_health(self.map[old_row][old_col]))
+
+        if code == BULLET:
+            do = 1
+            add = self.to_bullets(min((<int>self.get_bullets(self.map[old_row][old_col])) +
+                                     BULLETS_ADD, MAX_BULLETS)-self.get_bullets(self.map[old_row][old_col]))
+        if code == GUN_B:
+            do = 1
+            add = self.to_gun(GUN_B - self.get_gun(self.map[old_row][old_col]))
+        if code == GUN_1:
+            do = 1
+            add = self.to_gun(GUN_1 - self.get_gun(self.map[old_row][old_col]))
+        if code == GUN_2:
+            do = 1
+            add = self.to_gun(GUN_2 - self.get_gun(self.map[old_row][old_col]))
+        if code == GUN_3:
+            do = 1
+            add = self.to_gun(GUN_3 - self.get_gun(self.map[old_row][old_col]))
+        if code == GUN_E:
+            do = 1
+            add = self.to_gun(GUN_E - self.get_gun(self.map[old_row][old_col]))
+        if do == 1:
+            self.map[new_row][new_col] = self.map[old_row][old_col] + add
+            self.map[old_row][old_col] = 0 + self.to_visible(1)
+            return 1
+        return 0
+
+    @cython.boundscheck(False)
+    cdef void recalculate_visibility(self):
+        """Recalculate the visibility that a character can see and what 
+        he sees is hiding in a "fog" where only walls are visible.
+        """
+        cdef int row, col
+        cdef double distance
+        cdef unsigned long long visibility
+        # Calculate possibly range where can change the visibility
+        for row in range(self.pos_row - VIEW_RANGE, self.pos_row + VIEW_RANGE + 1):
+            for col in range(self.pos_col - VIEW_RANGE, self.pos_col + VIEW_RANGE + 1):
+                distance = sqrt(abs(row - self.pos_row) ** 2 + abs(col - self.pos_col) ** 2)
+                visibility = self.get_visible(self.map[row][col])
+                if distance < VIEW_RANGE:  # if could see
+                    if visibility == 2: # Player see this field
+                        self.map[row][col] -= self.to_visible(1)
+                    if visibility == 0: # Player dont see this field
+                        self.map[row][col] += self.to_visible(1)
+                else: # could not see do it in "fog"
+                    if visibility == 1:
+                        self.map[row][col] += self.to_visible(1)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -183,15 +330,12 @@ cdef class Worldmor:
 
         for i in range(row):
             for j in range(col):
-                if co.row_min+i == self.pos_row and co.col_min+j == self.pos_col:
-                    map_view[i, j] = PLAYER
-                else:
-                    map_view[i, j] = self.map[co.row_min+i][co.col_min+j]
+                map_view[i, j] = self.map[co.row_min + i][co.col_min + j]
         return map_view
 
     @cython.cdivision(True)
     @cython.boundscheck(False)
-    cdef int generate_part_of_map(self, int row, int column):
+    cdef unsigned long long generate_part_of_map(self, int row, int column):
         """Function for generating a map based on some probabilities to add specific items or walls.
         
         :param row: row position to generate to map
@@ -200,25 +344,36 @@ cdef class Worldmor:
         """
         # Not do garbage near player.
         cdef int walls = self.count_near_walls(row, column)
-        cdef double distance = sqrt(abs(row-self.mid_row)**2 + abs(column-self.mid_col)**2)
+        cdef double distance = sqrt(abs(row - self.mid_row) ** 2 + abs(column - self.mid_col) ** 2)
+        cdef unsigned long long to_set
+        if distance < VIEW_RANGE:
+            to_set = self.to_visible(1)
+        else:
+            to_set = self.to_visible(0)
         if abs(row - self.pos_row) < STARTING_PROTECTION_ZONE \
                 and abs(column - self.pos_col) < STARTING_PROTECTION_ZONE:
-            return GRASS
-        if (rand()/<float>RAND_MAX) < (WALL_BASE_PROBABILITY/(WALL_DIVIDER_BASE**abs(walls-1))):
-            return WALL
-        if (rand()/<float>RAND_MAX) < min(self.bullets_max_prob,
-                                          (1/(distance**self.bullets_exponent))*self.bullets_multiply):
-            return BULLET
-        if (rand()/<float>RAND_MAX) < min(self.health_max_prob,
-                                          (1/(distance**self.health_exponent))*self.health_multiply):
-            return HEALTH
-        if (rand()/<float>RAND_MAX) < min(self.enemy_max_prob,
-                                          self.enemy_start_probability*(distance/self.enemy_distance_divider)):
-            return (rand() % (ENEMY_E-ENEMY_B)) + ENEMY_B + 1
-        if (rand()/<float>RAND_MAX) < min(self.guns_max_prob,
-                                          (1/(distance**self.guns_exponent))*self.guns_multiply):
-            return (rand() % (GUN_E-GUN_B)) + GUN_B + 1
-        return 0
+            return to_set + GRASS
+
+        if (rand() / <float> RAND_MAX) < (WALL_BASE_PROBABILITY / (WALL_DIVIDER_BASE ** abs(walls - 1))):
+            return to_set + self.to_health(100) + WALL
+
+        if (rand() / <float> RAND_MAX) < min(self.bullets_max_prob,
+                                             (1 / (distance ** self.bullets_exponent)) * self.bullets_multiply):
+            return to_set + BULLET
+
+        if (rand() / <float> RAND_MAX) < min(self.health_max_prob,
+                                             (1 / (distance ** self.health_exponent)) * self.health_multiply):
+            return to_set + HEALTH
+
+        if (rand() / <float> RAND_MAX) < min(self.enemy_max_prob,
+                                             self.enemy_start_probability * (distance / self.enemy_distance_divider)):
+            return to_set + ((rand() % (ENEMY_E - ENEMY_B)) + ENEMY_B + 1)
+
+        if (rand() / <float> RAND_MAX) < min(self.guns_max_prob,
+                                             (1 / (distance ** self.guns_exponent)) * self.guns_multiply):
+            return to_set + ((rand() % (GUN_E - GUN_B)) + GUN_B + 1)
+
+        return to_set + 0
 
     @cython.cdivision(True)
     @cython.boundscheck(False)
@@ -232,16 +387,16 @@ cdef class Worldmor:
 
         cdef int i, j, rows, cols, walls = 0
         for i in range(-1, 2):
-            rows = row+i
+            rows = row + i
             if rows < 0 or rows >= self.rows:
                 continue
             for j in range(-1, 2):
                 if j == 0 and i == 0:
                     continue
-                cols = column+j
+                cols = column + j
                 if cols < 0 or cols >= self.cols:
                     continue
-                if self.map[rows][cols] == 1:
+                if self.map[rows][cols] % 100 == 1:
                     walls += 1
         return walls
 
@@ -250,11 +405,11 @@ cdef class Worldmor:
         the method will reallocate the map so that it creates a double size of the map and generates the map.
         """
         cdef int new_cols = self.cols * 2
-        cdef int * tmp
+        cdef unsigned long long *tmp
         cdef int i, j
 
         for i in range(self.rows):
-            tmp = <int *> PyMem_Malloc(new_cols*sizeof(int))
+            tmp = <unsigned long long *> PyMem_Malloc(new_cols * sizeof(unsigned long long))
             # first part is same
             for j in range(self.cols):
                 tmp[j] = self.map[i][j]
@@ -265,24 +420,23 @@ cdef class Worldmor:
             self.map[i] = tmp
         self.cols = new_cols
 
-
     cdef void refactor_cols_down(self):
         """If the map end is reached in the columns to the left(direction)| down(array representation), 
         the method will reallocate the map so that it creates a double size of the map and generates the map.
         The new part of map is created from 0, it needs shift data and shift the position of the player.
         """
         cdef int new_cols = self.cols * 2
-        cdef int * tmp
+        cdef unsigned long long *tmp
         cdef int i, j
         self.mid_col += self.cols
         for i in range(self.rows):
-            tmp = <int *> PyMem_Malloc(new_cols*sizeof(int))
+            tmp = <unsigned long long *> PyMem_Malloc(new_cols * sizeof(unsigned long long))
             # first part need to generate, down reach..
             for j in range(self.cols):
                 tmp[j] = self.generate_part_of_map(i, j)
             # the next part only copy
             for j in range(self.cols, new_cols, 1):
-                tmp[j] = self.map[i][j-self.cols]
+                tmp[j] = self.map[i][j - self.cols]
             PyMem_Free(self.map[i])
             self.map[i] = tmp
         self.pos_col += self.cols
@@ -294,18 +448,18 @@ cdef class Worldmor:
         The new part of map is created from 0, it needs shift data and shift the position of the player.
         """
         cdef int new_rows = self.rows * 2
-        cdef int ** tmp
+        cdef unsigned long long ** tmp
         cdef int i, j
         self.mid_row += self.rows
-        tmp = <int **> PyMem_Malloc(new_rows*sizeof(int*))
+        tmp = <unsigned long long **> PyMem_Malloc(new_rows * sizeof(unsigned long long*))
         # first part need to generate, down reach..
         for i in range(self.rows):
-            tmp[i] = <int *> PyMem_Malloc(self.cols*sizeof(int))
+            tmp[i] = <unsigned long long *> PyMem_Malloc(self.cols * sizeof(unsigned long long))
             for j in range(self.cols):
                 tmp[i][j] = self.generate_part_of_map(i, j)
         # the next part only copy
         for i in range(self.rows, new_rows, 1):
-            tmp[i] = self.map[i-self.rows]
+            tmp[i] = self.map[i - self.rows]
         PyMem_Free(self.map)
         self.map = tmp
         self.pos_row += self.rows
@@ -316,15 +470,15 @@ cdef class Worldmor:
         the method will reallocate the map so that it creates a double size of the map and generates the map.
         """
         cdef int new_rows = self.rows * 2
-        cdef int ** tmp
+        cdef unsigned long long ** tmp
         cdef int i, j
-        tmp = <int **> PyMem_Malloc(new_rows*sizeof(int*))
+        tmp = <unsigned long long **> PyMem_Malloc(new_rows * sizeof(unsigned long long*))
         # first part is same
         for i in range(self.rows):
             tmp[i] = self.map[i]
         # new second part is need to generate
         for i in range(self.rows, new_rows, 1):
-            tmp[i] = <int *> PyMem_Malloc(self.cols*sizeof(int))
+            tmp[i] = <unsigned long long *> PyMem_Malloc(self.cols * sizeof(unsigned long long))
             for j in range(self.cols):
                 tmp[i][j] = self.generate_part_of_map(i, j)
         PyMem_Free(self.map)
@@ -341,15 +495,14 @@ cdef class Worldmor:
         :return: min and max coordinates for both direction as structure
         """
         cdef int x1, x2, y1, y2
-        x1 = self.pos_row - (row-1)/2
-        x2 = self.pos_row + row/2 + 1
-        y1 = self.pos_col - (col-1)/2
-        y2 = self.pos_col + col/2 + 1
+        x1 = self.pos_row - (row - 1) / 2
+        x2 = self.pos_row + row / 2 + 1
+        y1 = self.pos_col - (col - 1) / 2
+        y2 = self.pos_col + col / 2 + 1
         return coords(x1, x2, y1, y2)
 
-
 @cython.boundscheck(False)
-cdef void free_mem(int ** array, int length):
+cdef void free_mem(unsigned long long ** array, int length):
     """Free allocated memory using malloc.
     
     :param array: 2D array to free

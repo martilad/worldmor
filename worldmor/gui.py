@@ -20,6 +20,7 @@ class TickThread(threading.Thread):
         threading.Thread.__init__(self)
         self.worldmor = worldmor
         self.daemon = True
+        self.window = None
         # start out paused.
         self.paused = True
         # condition for pausing and resume
@@ -31,6 +32,10 @@ class TickThread(threading.Thread):
         self.tick_time = tick_time
         # grid for update screen
         self.grid = None
+        # Add to status bar
+        self.score = 0
+        self.health = 0
+        self.bullets = 0
 
     def run(self):
         """Run thread, run as pause and resume when rendering window."""
@@ -44,7 +49,11 @@ class TickThread(threading.Thread):
                 return
 
             self.worldmor.do_one_time_moment()
-            if self.grid: self.grid.update()
+            # add score to status bar
+            if self.window:
+                self.window.show_score_and_live(self.score, self.health, self.bullets)
+            if self.grid:
+                self.grid.update()
             time.sleep(self.tick_time)
 
     def resume(self):
@@ -91,8 +100,6 @@ class GridWidget(QtWidgets.QWidget):
         """
         return column * self.cell_size, row * self.cell_size
 
-    # TODO: some logic to do moves, discrete time
-
     def paintEvent(self, event):
         """The event called when changing the game map or when the size of the game is change."""
         row_max, col_max = self.pixels_to_logical(self.width(), self.height())
@@ -112,48 +119,67 @@ class GridWidget(QtWidgets.QWidget):
 
                 rect = QtCore.QRectF(x, y, self.cell_size, self.cell_size)
 
-                # TODO: render picture based on codes in map.
+                # Get code for rendering
+                code = w_map[row, column] % 100
+                # Get visible -> what render
+                visible = int(w_map[row, column] / 100) % 10
 
                 # Grass render on whole map
                 painter.drawImage(rect, self.images[GRASS])
-
+                # Render black where is not visibility
+                if visible == 0:
+                    painter.fillRect(rect, QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+                    continue
+                # Render only map in "fog"
+                if visible == 2:
+                    if code == WALL:
+                        painter.drawImage(rect, self.images[WALL])
+                    painter.fillRect(rect, QtGui.QBrush(QtGui.QColor(0, 0, 0, 200)))
+                    continue
                 # Render pictures
-                if w_map[row, column] == WALL:
+                if code == WALL:
                     painter.drawImage(rect, self.images[WALL])
-                elif w_map[row, column] == BLOOD:
+                elif code == BLOOD:
                     painter.drawImage(rect, self.images[BLOOD])
-                elif w_map[row, column] == PLAYER:
+                elif code == PLAYER:
                     painter.drawImage(rect, self.images[PLAYER])
-                    painter.drawImage(QtCore.QRectF(x + 30, y + 30, self.cell_size - 30, self.cell_size - 30),
-                                      self.images[GUN_B])
-                    # TODO: render smaller guns
+                    painter.drawImage(QtCore.QRectF(x + self.cell_size / 3, y + self.cell_size / 3,
+                                                    self.cell_size - self.cell_size / 3,
+                                                    self.cell_size - self.cell_size / 3),
+                                      self.images[(int(w_map[row, column] / 100000000000)) % 100])  # get gun from code
+                    self.tick_thread.health = (int(w_map[row, column] / 1000)) % 1000  # get health
+                    self.tick_thread.bullets = (int(w_map[row, column] / 1000000)) % 1000  # get bullets
                     # TODO: render live bar, use in code
-                elif w_map[row, column] == BULLET:
+                elif code == BULLET:
+                    # render three bullets
                     painter.drawImage(QtCore.QRectF(x, y, self.cell_size, self.cell_size), self.images[BULLET])
                     painter.drawImage(QtCore.QRectF(x - self.cell_size / 4, y, self.cell_size, self.cell_size),
                                       self.images[BULLET])
                     painter.drawImage(QtCore.QRectF(x + self.cell_size / 4, y, self.cell_size, self.cell_size),
                                       self.images[BULLET])
-                elif w_map[row, column] == HEALTH:
-                    painter.drawImage(QtCore.QRectF(x + 15, y + 15, self.cell_size - 30, self.cell_size - 40),
+                elif code == HEALTH:
+                    # render health
+                    painter.drawImage(QtCore.QRectF(x + self.cell_size / 3, y + self.cell_size / 2,
+                                                    self.cell_size - self.cell_size / 3,
+                                                    self.cell_size - self.cell_size / 2),
                                       self.images[HEALTH])
-                elif w_map[row, column] == ENEMY_B:
+                elif code == ENEMY_B:
                     painter.drawImage(rect, self.images[ENEMY_B])
-                elif w_map[row, column] == ENEMY_1:
+                elif code == ENEMY_1:
                     painter.drawImage(rect, self.images[ENEMY_1])
-                elif w_map[row, column] == ENEMY_2:
+                elif code == ENEMY_2:
                     painter.drawImage(rect, self.images[ENEMY_2])
-                elif w_map[row, column] == ENEMY_E:
+                elif code == ENEMY_E:
                     painter.drawImage(rect, self.images[ENEMY_E])
-                elif w_map[row, column] == GUN_B:
+                elif code == GUN_B:
                     painter.drawImage(rect, self.images[GUN_B])
-                elif w_map[row, column] == GUN_1:
+                elif code == GUN_1:
                     painter.drawImage(rect, self.images[GUN_1])
-                elif w_map[row, column] == GUN_2:
+                elif code == GUN_2:
                     painter.drawImage(rect, self.images[GUN_2])
-                elif w_map[row, column] == GUN_3:
+                elif code == GUN_3:
                     painter.drawImage(rect, self.images[GUN_3])
-                elif w_map[row, column] == GUN_E:
+                elif code == GUN_E:
                     painter.drawImage(rect, self.images[GUN_E])
 
     def wheelEvent(self, event):
@@ -171,7 +197,7 @@ class GridWidget(QtWidgets.QWidget):
                     self.update()
 
 
-class myWindow(QtWidgets.QMainWindow):
+class MyWindow(QtWidgets.QMainWindow):
     """Main application window."""
 
     def __init__(self, tick_thread):
@@ -213,14 +239,15 @@ class App:
         """
         self.app = QtWidgets.QApplication([])
 
+        self.worldmor = None
         self.create_new_world()
         # create daemon thread for do time in the WorldMor
         self.tick_thread = TickThread(self.worldmor, TICK_TIME)
         self.tick_thread.start()
 
-        self.window = myWindow(self.tick_thread)
+        self.window = MyWindow(self.tick_thread)
         self.window.setWindowIcon(QtGui.QIcon(App.get_img_path("worldmor.svg")))
-
+        self.tick_thread.window = self.window
         # load layout
         with open(App.get_gui_path('mainwindow.ui')) as f:
             uic.loadUi(f, self.window)
@@ -250,8 +277,7 @@ class App:
 
         # TODO: need dialog after game, some with score or leader bord maybe?
         self.window.menuBar().setVisible(True)
-        # TODO: set score on window
-        self.window.show_score_and_live(0, 100, 1000)
+        self.window.show_score_and_live(0, 0, 0)
 
     def new_dialog(self):
         """Show question dialog if you really want create new game and eventually create it."""
@@ -292,7 +318,6 @@ class App:
             self.window.close()
         if reply == QtWidgets.QMessageBox.No:
             self.tick_thread.resume()
-
 
     def fullscreen(self):
         print("fullscreen")
