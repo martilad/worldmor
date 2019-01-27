@@ -11,6 +11,9 @@ MAX_CELL_SIZE = 100
 """One step when turn the mouse wheel."""
 ZOOM_CELL_STEP = 2
 
+"""One tick in game. Discrete time. With low tick can simulate continual time theoretical."""
+TICK_TIME = 0.17
+
 """Specifies how large the images from the SVG format will be rendered in pixels. 
 Higher resolution may slow down the game."""
 RENDER_RECT_SIZE = 500

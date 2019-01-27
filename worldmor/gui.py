@@ -1,4 +1,6 @@
 import os
+import threading
+import time
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
 from worldmor.worldmor import *
 from worldmor.about import ABOUT
@@ -9,17 +11,71 @@ PICTURES = {"grass": GRASS, "wall": WALL, "blood": BLOOD, "player": PLAYER, "bul
             "g1": GUN_B, "g2": GUN_1, "g3": GUN_2, "g4": GUN_3, "g5": GUN_E}
 
 
-# TODO: thread which will do time moments in this app. This app only set the move need or gun.
+class TickThread(threading.Thread):
+    """Tick thread class is class do the time moments in the game. In each time moment can move, shoot or both.
+    AI runs too on this time moments. The timer can be paused and resume to stopping the game."""
+
+    def __init__(self, worldmor, tick_time):
+        """Init ticking class for do time moment. After init it is need set the grid for updates after time moment."""
+        threading.Thread.__init__(self)
+        self.worldmor = worldmor
+        self.daemon = True
+        # start out paused.
+        self.paused = True
+        # condition for pausing and resume
+        self.state = threading.Condition()
+        self.do_state = threading.Condition()
+        # end kill the daemon thread
+        self.kill = False
+        # one step tick time
+        self.tick_time = tick_time
+        # grid for update screen
+        self.grid = None
+
+    def run(self):
+        """Run thread, run as pause and resume when rendering window."""
+        self.resume()
+        while True:
+            with self.state:
+                if self.paused:
+                    # block execution until notified.
+                    self.state.wait()
+            if self.kill:
+                return
+
+            self.worldmor.do_one_time_moment()
+            if self.grid: self.grid.update()
+            time.sleep(self.tick_time)
+
+    def resume(self):
+        """Resume ticker -> resume game"""
+        with self.state:
+            self.paused = False
+            # Unblock self if waiting.
+            self.state.notify()
+
+    def pause(self):
+        """Pause time ticking thread, AI not moves."""
+        with self.state:
+            self.paused = True  # Block self.
+
+    def set_kill(self):
+        """Set kill flag to kill daemon thread, when wake up in one time moment."""
+        self.kill = True
+        self.resume()
+
 
 class GridWidget(QtWidgets.QWidget):
     """GridWidget is class for render the part of map to window."""
 
-    def __init__(self, worldmor, images):
+    def __init__(self, worldmor, images, tick_thread):
         super().__init__()
         self.images = images
         self.cell_size = CELL_SIZE
         self.worldmor = worldmor
+        self.tick_thread = tick_thread
         self.setMinimumSize(*self.logical_to_pixels(3, 3))
+        self.tick_thread.resume()
 
     def pixels_to_logical(self, x, y):
         """Convert pixels to logical size of the field.
@@ -118,9 +174,10 @@ class GridWidget(QtWidgets.QWidget):
 class myWindow(QtWidgets.QMainWindow):
     """Main application window."""
 
-    def __init__(self):
+    def __init__(self, tick_thread):
         super().__init__()
         self.grid = None
+        self.tick_thread = tick_thread
         self.worldmor = None
 
     def keyPressEvent(self, e):
@@ -133,11 +190,15 @@ class myWindow(QtWidgets.QMainWindow):
             self.worldmor.up()
         if e.key() == QtCore.Qt.Key_Down or e.key() == QtCore.Qt.Key_S:
             self.worldmor.down()
-        self.grid.update()
+        if e.key() == QtCore.Qt.Key_Space or e.key() == QtCore.Qt.Key_0:
+            self.worldmor.shoot()
 
     def show_score_and_live(self, score, live, bullets):
         """Show score, live and number of bullets in status bar."""
         self.statusBar.showMessage("Score: %s    Live: %s   Bullets: %s" % (int(score), int(live), int(bullets)))
+
+    def closeEvent(self, event):
+        self.tick_thread.set_kill()
 
 
 class App:
@@ -153,8 +214,11 @@ class App:
         self.app = QtWidgets.QApplication([])
 
         self.create_new_world()
+        # create daemon thread for do time in the WorldMor
+        self.tick_thread = TickThread(self.worldmor, TICK_TIME)
+        self.tick_thread.start()
 
-        self.window = myWindow()
+        self.window = myWindow(self.tick_thread)
         self.window.setWindowIcon(QtGui.QIcon(App.get_img_path("worldmor.svg")))
 
         # load layout
@@ -166,10 +230,12 @@ class App:
             self.images[PICTURES[i]] = App.render_pixmap_from_svg(str(i) + ".svg", RENDER_RECT_SIZE)
 
         # create and add grid
-        self.grid = GridWidget(self.worldmor, images=self.images)
+        self.grid = GridWidget(self.worldmor, images=self.images, tick_thread=self.tick_thread)
         self.window.grid = self.grid
         self.window.worldmor = self.worldmor
         self.window.setCentralWidget(self.grid)
+        # set grid to daemon thread for do gui updates
+        self.tick_thread.grid = self.grid
 
         # bind menu actions
         self.action_bind('actionNew', lambda: self.new_dialog())
@@ -183,12 +249,13 @@ class App:
         self.action_bind('actionAbout', lambda: self.about_dialog())
 
         # TODO: need dialog after game, some with score or leader bord maybe?
-
         self.window.menuBar().setVisible(True)
+        # TODO: set score on window
         self.window.show_score_and_live(0, 100, 1000)
 
     def new_dialog(self):
         """Show question dialog if you really want create new game and eventually create it."""
+        self.tick_thread.pause()
         reply = QtWidgets.QMessageBox.question(self.window, 'New?',
                                                'Are you really want new game?',
                                                QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
@@ -197,26 +264,35 @@ class App:
             self.grid.worldmor = self.worldmor
             self.window.worldmor = self.worldmor
             self.grid.update()
+        self.tick_thread.resume()
 
     def load_dialog(self):
         print("load dialog")
         # TODO: normal load file dialog - check format
+        # TODO: pause time deamon
 
     def save_dialog(self):
         print("save dialog")
         # TODO: save if file is known, or open file save dialog as save as
+        # TODO: pause time deamon
 
     def save_as_dialog(self):
         print("save as dialog")
         # TODO: save dialog
+        # TODO: pause time deamon
 
     def exit_dialog(self):
         """Show question dialog if you really want to exit and eventually end the application."""
+        self.tick_thread.pause()
         reply = QtWidgets.QMessageBox.question(self.window, 'Exit?',
                                                'Are you really want exit the game?',
                                                QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
         if reply == QtWidgets.QMessageBox.Yes:
+            self.tick_thread.set_kill()
             self.window.close()
+        if reply == QtWidgets.QMessageBox.No:
+            self.tick_thread.resume()
+
 
     def fullscreen(self):
         print("fullscreen")
@@ -236,7 +312,9 @@ class App:
 
     def about_dialog(self):
         """Show about dialog save in about.py."""
+        self.tick_thread.pause()
         QtWidgets.QMessageBox.about(self.window, "WorldMor", ABOUT)
+        self.tick_thread.resume()
 
     def action_bind(self, name, func):
         """Find function in QMAinWindow layout as child and bind to it the action.
@@ -252,7 +330,6 @@ class App:
         """Render pixmaps from svg for fast render in game.
 
         SVG images rendered slowly if there were a lot of them.
-        TODO: Here, in pixmap, you can choose the image quality if necessary.
         :param file_name: file name of svg picture
         :param render_quality: size in pixel to render from SVG
         :return: QImage with pixmap with render_quality size

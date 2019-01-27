@@ -6,7 +6,7 @@ cimport cython
 
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.stdlib cimport rand, RAND_MAX
-from libc.math cimport sin, cos, acos, exp, sqrt, fabs, M_PI, abs
+from libc.math cimport sqrt
 
 cpdef enum:
     # Enum for items, players and environments of the map.
@@ -51,8 +51,6 @@ cdef struct coords:
     int col_max
 
 
-
-# TODO: Write game logic
 cdef class Worldmor:
     """Game"""
 
@@ -80,6 +78,9 @@ cdef class Worldmor:
     cdef double guns_multiply
     cdef double guns_max_prob
 
+    cdef int move_flag
+    cdef int shoot_flag
+
     def __cinit__(self, int rows, double bullets_exponent, double bullets_multiply,
                   double bullets_max_prob, double health_exponent, double health_multiply, double health_max_prob,
                   double enemy_start_probability, double enemy_distance_divider, double enemy_max_prob,
@@ -102,6 +103,8 @@ cdef class Worldmor:
         self.guns_multiply = guns_multiply
         self.guns_max_prob = guns_max_prob
 
+        self.move_flag = 0
+        self.shoot_flag = 0
         cdef int i, j
         self.rows = rows
         self.cols = rows
@@ -122,16 +125,34 @@ cdef class Worldmor:
         free_mem(self.map, self.rows)
 
     cpdef void left(self):
-        self.pos_col -= 1
+        self.move_flag = 4
 
     cpdef void right(self):
-        self.pos_col += 1
+        self.move_flag = 2
 
     cpdef void up(self):
-        self.pos_row -= 1
+        self.move_flag = 1
 
     cpdef void down(self):
-        self.pos_row += 1
+        self.move_flag = 3
+
+    cpdef void shoot(self):
+        self.shoot_flag = 1
+
+    cpdef void do_one_time_moment(self):
+        if self.move_flag == 1:
+            self.pos_row -= 1
+        elif self.move_flag == 2:
+            self.pos_col += 1
+        elif self.move_flag == 3:
+            self.pos_row += 1
+        elif self.move_flag == 4:
+            self.pos_col -= 1
+        self.shoot_flag = 0
+        self.move_flag = 0
+        # TODO: Write game logic
+        # TODO: Write AI levels and moves
+        # TODO: Write shooting lives and health and bullets
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -177,10 +198,8 @@ cdef class Worldmor:
         :param column: column position to generate to map 
         :return: 
         """
-
         # Not do garbage near player.
         cdef int walls = self.count_near_walls(row, column)
-        # TODO: From MID post can compute euclidean distance from the previous middle and shoot down probability to hard the game
         cdef double distance = sqrt(abs(row-self.mid_row)**2 + abs(column-self.mid_col)**2)
         if abs(row - self.pos_row) < STARTING_PROTECTION_ZONE \
                 and abs(column - self.pos_col) < STARTING_PROTECTION_ZONE:
