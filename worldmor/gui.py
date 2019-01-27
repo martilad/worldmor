@@ -11,27 +11,28 @@ PICTURES = {"grass": GRASS, "wall": WALL, "blood": BLOOD, "player": PLAYER, "bul
             "g1": GUN_B, "g2": GUN_1, "g3": GUN_2, "g4": GUN_3, "g5": GUN_E}
 
 
-class TickThread(threading.Thread):
+class TickThread(QtCore.QThread):
     """Tick thread class is class do the time moments in the game. In each time moment can move, shoot or both.
     AI runs too on this time moments. The timer can be paused and resume to stopping the game."""
 
-    def __init__(self, worldmor, tick_time):
+    # Signal for update
+    signal_update = QtCore.pyqtSignal()
+    # Signal for set score bar
+    signal_score = QtCore.pyqtSignal(int, int, int)
+
+    def __init__(self, worldmor, tick_time, parent=None):
         """Init ticking class for do time moment. After init it is need set the grid for updates after time moment."""
-        threading.Thread.__init__(self)
+        super(TickThread, self).__init__(parent)
         self.worldmor = worldmor
         self.daemon = True
-        self.window = None
         # start out paused.
         self.paused = True
         # condition for pausing and resume
         self.state = threading.Condition()
-        self.do_state = threading.Condition()
         # end kill the daemon thread
         self.kill = False
         # one step tick time
         self.tick_time = tick_time
-        # grid for update screen
-        self.grid = None
         # Add to status bar
         self.score = 0
         self.health = 0
@@ -49,11 +50,10 @@ class TickThread(threading.Thread):
                 return
 
             self.worldmor.do_one_time_moment()
-            # add score to status bar
-            if self.window:
-                self.window.show_score_and_live(self.score, self.health, self.bullets)
-            if self.grid:
-                self.grid.update()
+            # emit update signal to main thread
+            self.signal_update.emit()
+            # emit score signal to main thread
+            self.signal_score.emit(self.score, self.health, self.bullets)
             time.sleep(self.tick_time)
 
     def resume(self):
@@ -85,6 +85,7 @@ class GridWidget(QtWidgets.QWidget):
         self.tick_thread = tick_thread
         self.setMinimumSize(*self.logical_to_pixels(3, 3))
         self.tick_thread.resume()
+        self.lock = threading.Lock()
 
     def pixels_to_logical(self, x, y):
         """Convert pixels to logical size of the field.
@@ -102,6 +103,7 @@ class GridWidget(QtWidgets.QWidget):
 
     def paintEvent(self, event):
         """The event called when changing the game map or when the size of the game is change."""
+
         row_max, col_max = self.pixels_to_logical(self.width(), self.height())
 
         row_max += 1
@@ -182,6 +184,7 @@ class GridWidget(QtWidgets.QWidget):
                 elif code == GUN_E:
                     painter.drawImage(rect, self.images[GUN_E])
 
+
     def wheelEvent(self, event):
         """Method called when the user uses the wheel. Need check ctrl for zoom."""
         modifiers = QtGui.QGuiApplication.keyboardModifiers()
@@ -219,7 +222,7 @@ class MyWindow(QtWidgets.QMainWindow):
         if e.key() == QtCore.Qt.Key_Space or e.key() == QtCore.Qt.Key_0:
             self.worldmor.shoot()
 
-    def show_score_and_live(self, score, live, bullets):
+    def update_status_bar(self, score, live, bullets):
         """Show score, live and number of bullets in status bar."""
         self.statusBar.showMessage("Score: %s    Live: %s   Bullets: %s" % (int(score), int(live), int(bullets)))
 
@@ -247,7 +250,6 @@ class App:
 
         self.window = MyWindow(self.tick_thread)
         self.window.setWindowIcon(QtGui.QIcon(App.get_img_path("worldmor.svg")))
-        self.tick_thread.window = self.window
         # load layout
         with open(App.get_gui_path('mainwindow.ui')) as f:
             uic.loadUi(f, self.window)
@@ -261,8 +263,6 @@ class App:
         self.window.grid = self.grid
         self.window.worldmor = self.worldmor
         self.window.setCentralWidget(self.grid)
-        # set grid to daemon thread for do gui updates
-        self.tick_thread.grid = self.grid
 
         # bind menu actions
         self.action_bind('actionNew', lambda: self.new_dialog())
@@ -277,7 +277,18 @@ class App:
 
         # TODO: need dialog after game, some with score or leader bord maybe?
         self.window.menuBar().setVisible(True)
-        self.window.show_score_and_live(0, 0, 0)
+        # connect signal from thread for update
+        self.tick_thread.signal_update.connect(self.update_signal)
+        # connect score signal from thread for update
+        self.tick_thread.signal_score.connect(self.update_status_bar)
+
+    def update_signal(self):
+        """Connected function to signal in ticking thread for correct updates."""
+        self.grid.update()
+
+    def update_status_bar(self, score, health, bullets):
+        """Connected function to signal in ticking thread for correct updates of score bar."""
+        self.window.update_status_bar(score, health, bullets)
 
     def new_dialog(self):
         """Show question dialog if you really want create new game and eventually create it."""
@@ -289,6 +300,7 @@ class App:
             self.create_new_world()
             self.grid.worldmor = self.worldmor
             self.window.worldmor = self.worldmor
+            self.tick_thread.worldmor = self.worldmor
             self.grid.update()
         self.tick_thread.resume()
 
