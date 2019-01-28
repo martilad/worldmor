@@ -8,7 +8,7 @@ from worldmor.constants import *
 
 PICTURES = {"grass": GRASS, "wall": WALL, "blood": BLOOD, "player": PLAYER, "bullet": BULLET,
             "health": HEALTH, "e1": ENEMY_B, "e2": ENEMY_1, "e3": ENEMY_2, "e4": ENEMY_E,
-            "g1": GUN_B, "g2": GUN_1, "g3": GUN_2, "g4": GUN_3, "g5": GUN_E}
+            "g1": GUN_B, "g2": GUN_1, "g3": GUN_2, "g4": GUN_3, "g5": GUN_E, 'ex': EXPLODE}
 
 
 class TickThread(QtCore.QThread):
@@ -183,7 +183,8 @@ class GridWidget(QtWidgets.QWidget):
                     painter.drawImage(rect, self.images[GUN_3])
                 elif code == GUN_E:
                     painter.drawImage(rect, self.images[GUN_E])
-
+                if visible > 2:
+                    painter.drawImage(rect, self.images[EXPLODE])
 
     def wheelEvent(self, event):
         """Method called when the user uses the wheel. Need check ctrl for zoom."""
@@ -340,7 +341,7 @@ class App:
 
     def create_new_world(self):
         """Create WorldMor map with specific parameters for generating map."""
-        self.worldmor = Worldmor(rows=START_MAP_SIZE, bullets_exponent=BULLETS_EXPONENT,
+        self.worldmor = Worldmor(rows=START_MAP_SIZE, random_seed = time.time(), bullets_exponent=BULLETS_EXPONENT,
                                  bullets_multiply=BULLETS_MULTIPLY, bullets_max_prob=BULLETS_MAX_PROB,
                                  health_exponent=HEALTH_EXPONENT, health_multiply=HEALTH_MULTIPLY,
                                  health_max_prob=HEALTH_MAX_PROB, enemy_start_probability=ENEMY_START_PROBABILITY,
