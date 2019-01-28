@@ -553,7 +553,8 @@ cdef class Worldmor:
 
         if (rand() / <float> RAND_MAX) < min(self.enemy_max_prob,
                                              self.enemy_start_probability * (distance / self.enemy_distance_divider)):
-            return to_set + self.to_health(100) + ((rand() % (ENEMY_E - ENEMY_B)) + ENEMY_B + 1)
+            return to_set + self.to_health(100) + self.to_bullets(20)+ self.to_gun(GUN_B) + \
+                   ((rand() % (ENEMY_E - ENEMY_B)) + ENEMY_B + 1)
 
         if (rand() / <float> RAND_MAX) < min(self.guns_max_prob,
                                              (1 / (distance ** self.guns_exponent)) * self.guns_multiply):

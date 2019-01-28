@@ -86,6 +86,7 @@ class GridWidget(QtWidgets.QWidget):
         self.setMinimumSize(*self.logical_to_pixels(3, 3))
         self.tick_thread.resume()
         self.lock = threading.Lock()
+        self.health_pen_size = 2
 
     def pixels_to_logical(self, x, y):
         """Convert pixels to logical size of the field.
@@ -110,6 +111,7 @@ class GridWidget(QtWidgets.QWidget):
         col_max += 1
 
         painter = QtGui.QPainter(self)
+        painter.setPen(QtGui.QPen(QtGui.QBrush(QtGui.QColor(0, 0, 0)), self.health_pen_size))
 
         w_map = self.worldmor.get_map(row_max, col_max)
 
@@ -145,13 +147,10 @@ class GridWidget(QtWidgets.QWidget):
                     painter.drawImage(rect, self.images[BLOOD])
                 elif code == PLAYER:
                     painter.drawImage(rect, self.images[PLAYER])
-                    painter.drawImage(QtCore.QRectF(x + self.cell_size / 3, y + self.cell_size / 3,
-                                                    self.cell_size - self.cell_size / 3,
-                                                    self.cell_size - self.cell_size / 3),
-                                      self.images[(int(w_map[row, column] / 100000000000)) % 100])  # get gun from code
-                    self.tick_thread.health = (int(w_map[row, column] / 1000)) % 1000  # get health
+                    health = (int(w_map[row, column] / 1000)) % 1000
+                    self.tick_thread.health = health  # get health
                     self.tick_thread.bullets = (int(w_map[row, column] / 1000000)) % 1000  # get bullets
-                    # TODO: render live bar, use in code
+                    self.drawHealth(x, y, health, painter)
                 elif code == BULLET:
                     # render three bullets
                     painter.drawImage(QtCore.QRectF(x, y, self.cell_size, self.cell_size), self.images[BULLET])
@@ -185,6 +184,25 @@ class GridWidget(QtWidgets.QWidget):
                     painter.drawImage(rect, self.images[GUN_E])
                 if visible > 2:
                     painter.drawImage(rect, self.images[EXPLODE])
+                if ENEMY_B <= code <= ENEMY_E or code == PLAYER:
+                    health = (int(w_map[row, column] / 1000)) % 1000
+                    self.drawHealth(x, y, health, painter)
+                    gun = (int(w_map[row, column] / 100000000000)) % 100
+                    if GUN_B <= gun <= GUN_E:
+                        painter.drawImage(QtCore.QRectF(x + self.cell_size / 3, y + self.cell_size / 3,
+                                                    self.cell_size - self.cell_size / 3,
+                                                    self.cell_size - self.cell_size / 3),
+                                      self.images[gun])
+
+    def drawHealth(self, x, y, health, painter):
+        """Draw health bar for characters."""
+        painter.drawRect(QtCore.QRectF(x + self.cell_size / 20, y,
+                                       self.cell_size - self.cell_size / 10,
+                                       self.cell_size / 7))
+        painter.fillRect(QtCore.QRectF(x + self.health_pen_size / 2 + self.cell_size / 20, y + self.health_pen_size / 2,
+                                       (self.cell_size - self.cell_size / 10 - self.health_pen_size) * (health / 100),
+                                       self.cell_size / 7 - self.health_pen_size),
+                         QtGui.QBrush(QtGui.QColor(200, 0, 0, 200)))
 
     def wheelEvent(self, event):
         """Method called when the user uses the wheel. Need check ctrl for zoom."""
@@ -341,7 +359,7 @@ class App:
 
     def create_new_world(self):
         """Create WorldMor map with specific parameters for generating map."""
-        self.worldmor = Worldmor(rows=START_MAP_SIZE, random_seed = time.time(), bullets_exponent=BULLETS_EXPONENT,
+        self.worldmor = Worldmor(rows=START_MAP_SIZE, random_seed=time.time(), bullets_exponent=BULLETS_EXPONENT,
                                  bullets_multiply=BULLETS_MULTIPLY, bullets_max_prob=BULLETS_MAX_PROB,
                                  health_exponent=HEALTH_EXPONENT, health_multiply=HEALTH_MULTIPLY,
                                  health_max_prob=HEALTH_MAX_PROB, enemy_start_probability=ENEMY_START_PROBABILITY,
