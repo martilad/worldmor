@@ -49,6 +49,7 @@ class TickThread(QtCore.QThread):
             if self.kill:
                 return
 
+            #TODO: score collect and show
             self.worldmor.do_one_time_moment()
             # emit update signal to main thread
             self.signal_update.emit()
@@ -138,7 +139,7 @@ class GridWidget(QtWidgets.QWidget):
                 if visible == 2:
                     if code == WALL:
                         painter.drawImage(rect, self.images[WALL])
-                    painter.fillRect(rect, QtGui.QBrush(QtGui.QColor(0, 0, 0, 200)))
+                    painter.fillRect(rect, QtGui.QBrush(QtGui.QColor(0, 0, 0, 150)))
                     continue
                 # Render pictures
                 if code == WALL:
@@ -222,14 +223,16 @@ class GridWidget(QtWidgets.QWidget):
 class MyWindow(QtWidgets.QMainWindow):
     """Main application window."""
 
-    def __init__(self, tick_thread):
+    def __init__(self, tick_thread, app):
         super().__init__()
         self.grid = None
         self.tick_thread = tick_thread
         self.worldmor = None
+        self.app = app
 
     def keyPressEvent(self, e):
         """Catch key press event and do move."""
+        modifiers = QtGui.QGuiApplication.keyboardModifiers()
         if e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_A:
             self.worldmor.left()
         if e.key() == QtCore.Qt.Key_Right or e.key() == QtCore.Qt.Key_D:
@@ -237,9 +240,29 @@ class MyWindow(QtWidgets.QMainWindow):
         if e.key() == QtCore.Qt.Key_Up or e.key() == QtCore.Qt.Key_W:
             self.worldmor.up()
         if e.key() == QtCore.Qt.Key_Down or e.key() == QtCore.Qt.Key_S:
-            self.worldmor.down()
+            if modifiers == QtCore.Qt.ControlModifier:
+                self.app.save_dialog()
+            elif modifiers == (QtCore.Qt.ControlModifier |
+                               QtCore.Qt.ShiftModifier):
+                self.app.save_as_dialog()
+            else:
+                self.worldmor.down()
         if e.key() == QtCore.Qt.Key_Space or e.key() == QtCore.Qt.Key_0:
             self.worldmor.shoot()
+        if e.key() == QtCore.Qt.Key_N:
+            if modifiers == QtCore.Qt.ControlModifier:
+                self.app.new_dialog()
+        if e.key() == QtCore.Qt.Key_E:
+            if modifiers == QtCore.Qt.ControlModifier:
+                self.app.exit_dialog()
+        if e.key() == QtCore.Qt.Key_O:
+            if modifiers == QtCore.Qt.ControlModifier:
+                self.app.load_dialog()
+        if e.key() == QtCore.Qt.Key_Escape:
+            self.app.fullscreen_dialog()
+        if e.key() == QtCore.Qt.Key_Return:
+            if modifiers == QtCore.Qt.AltModifier:
+                self.app.fullscreen()
 
     def update_status_bar(self, score, live, bullets):
         """Show score, live and number of bullets in status bar."""
@@ -261,13 +284,14 @@ class App:
         """
         self.app = QtWidgets.QApplication([])
 
+        self.full_screen = False
         self.worldmor = None
         self.create_new_world()
         # create daemon thread for do time in the WorldMor
         self.tick_thread = TickThread(self.worldmor, TICK_TIME)
         self.tick_thread.start()
 
-        self.window = MyWindow(self.tick_thread)
+        self.window = MyWindow(self.tick_thread, self)
         self.window.setWindowIcon(QtGui.QIcon(App.get_img_path("worldmor.svg")))
         # load layout
         with open(App.get_gui_path('mainwindow.ui')) as f:
@@ -284,15 +308,15 @@ class App:
         self.window.setCentralWidget(self.grid)
 
         # bind menu actions
-        self.action_bind('actionNew', lambda: self.new_dialog())
-        self.action_bind('actionLoad', lambda: self.load_dialog())
-        self.action_bind('actionSave', lambda: self.save_dialog())
-        self.action_bind('actionSave_As', lambda: self.save_as_dialog())
-        self.action_bind('actionExit', lambda: self.exit_dialog())
+        App.action_bind(self.window, 'actionNew', lambda: self.new_dialog(), QtWidgets.QAction)
+        App.action_bind(self.window, 'actionLoad', lambda: self.load_dialog(), QtWidgets.QAction)
+        App.action_bind(self.window, 'actionSave', lambda: self.save_dialog(), QtWidgets.QAction)
+        App.action_bind(self.window, 'actionSave_As', lambda: self.save_as_dialog(), QtWidgets.QAction)
+        App.action_bind(self.window, 'actionExit', lambda: self.exit_dialog(), QtWidgets.QAction)
 
-        self.action_bind('actionFullscreen', lambda: self.fullscreen())
+        App.action_bind(self.window, 'actionFullscreen', lambda: self.fullscreen(), QtWidgets.QAction)
 
-        self.action_bind('actionAbout', lambda: self.about_dialog())
+        App.action_bind(self.window, 'actionAbout', lambda: self.about_dialog(), QtWidgets.QAction)
 
         # TODO: need dialog after game, some with score or leader bord maybe?
         self.window.menuBar().setVisible(True)
@@ -351,11 +375,48 @@ class App:
             self.tick_thread.resume()
 
     def fullscreen(self):
-        print("fullscreen")
-        # self.window.showFullScreen()
-        # self.window.showMaximized()
-        self.window.menuBar().setVisible(True)
-        # TODO: switch to fullscreen mode
+        """Switch to fullscreen or back"""
+        if self.full_screen:
+            self.window.showNormal()
+            self.full_screen = False
+            self.window.menuBar().setVisible(True)
+        else:
+            self.window.showFullScreen()
+            self.full_screen = True
+            self.window.menuBar().setVisible(False)
+
+    def fullscreen_dialog(self):
+        """Load buttons dialog if have game fullscreen. Can be use shortcuts too."""
+        if not self.full_screen:
+            return
+        # Pause game
+        self.tick_thread.pause()
+        dialog = QtWidgets.QDialog(self.window)
+        with open(App.get_gui_path('fullscreen_dialog.ui')) as f:
+            uic.loadUi(f, dialog)
+        dialog.setWindowFlag(QtCore.Qt.SplashScreen)
+        # Bind the buttons to actions
+        App.button_bind(dialog, 'New', lambda: self.dialog_close(dialog, self.new_dialog),
+                        QtWidgets.QPushButton)
+        App.button_bind(dialog, 'Load', lambda: self.dialog_close(dialog, self.load_dialog),
+                        QtWidgets.QPushButton)
+        App.button_bind(dialog, 'Save', lambda: self.dialog_close(dialog, self.save_dialog),
+                        QtWidgets.QPushButton)
+        App.button_bind(dialog, 'Save_as', lambda: self.dialog_close(dialog, self.save_as_dialog),
+                        QtWidgets.QPushButton)
+        App.button_bind(dialog, 'Exit', lambda: self.dialog_close(dialog, self.exit_dialog),
+                        QtWidgets.QPushButton)
+        App.button_bind(dialog, 'Back', lambda: self.dialog_close(dialog, dialog.close),
+                        QtWidgets.QPushButton)
+
+        dialog.exec()
+
+    def dialog_close(self, dialog, call):
+        """Manage fullscreen dialog push buttons to resume ticker and close dialog."""
+        dialog.close()
+        call()
+        self.tick_thread.resume()
+        return
 
     def create_new_world(self):
         """Create WorldMor map with specific parameters for generating map."""
@@ -372,14 +433,27 @@ class App:
         QtWidgets.QMessageBox.about(self.window, "WorldMor", ABOUT)
         self.tick_thread.resume()
 
-    def action_bind(self, name, func):
+    @staticmethod
+    def action_bind(parent, name, func, what):
         """Find function in QMAinWindow layout as child and bind to it the action.
 
+        :param parrent: name of parent where look for items
         :param name: name of child in gui
         :param func: function to bind
         """
-        action = self.window.findChild(QtWidgets.QAction, name)
+        action = parent.findChild(what, name)
         action.triggered.connect(func)
+
+    @staticmethod
+    def button_bind(parrent, name, func, what):
+        """Find function in QMAinWindow layout as child and bind to it the action.
+
+        :param parrent: name of parrent where look for items
+        :param name: name of child in gui
+        :param func: function to bind
+        """
+        action = parrent.findChild(what, name)
+        action.clicked.connect(func)
 
     @staticmethod
     def render_pixmap_from_svg(file_name, render_quality):
