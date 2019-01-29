@@ -37,6 +37,9 @@ cdef int VIEW_RANGE = 6
 """How far is do the game play. AI move, and do all checks"""
 cdef int CHECK_RANGE = 30
 
+"""How many points add when collect blood."""
+cdef int ADD_POINTS = 10
+
 """Guns characteristics"""
 cdef int GUN_B_STRONG = 10
 cdef int GUN_B_DISTANCE = 2
@@ -222,7 +225,7 @@ cdef class Worldmor:
         else:
             self.shoot_flag = 2
 
-    cpdef void do_one_time_moment(self):
+    cpdef int do_one_time_moment(self):
         """Method for doing move or shoot at a given time, for the player or for enemy.
         Flags set between times and actions taken are checked. Even in this step, 
         the AI will make some of their steps.
@@ -232,26 +235,32 @@ cdef class Worldmor:
         # shoot before move
         if self.shoot_flag == 1:
             self.do_shoot(self.pos_row, self.pos_col)
+        # move and collect
+        cdef int move_value = 0
         if self.move_flag == 1:
-            if self.do_move(self.pos_row, self.pos_col, self.pos_row - 1, self.pos_col) == 1:
+            move_value = self.do_move(self.pos_row, self.pos_col, self.pos_row - 1, self.pos_col)
+            if move_value >= 1:
                 self.pos_row -= 1
             self.map[self.pos_row][self.pos_col] += self.to_direction(1) - self.to_direction(
                     self.get_direction(self.map[self.pos_row][self.pos_col]))
 
         elif self.move_flag == 2:
-            if self.do_move(self.pos_row, self.pos_col, self.pos_row, self.pos_col + 1) == 1:
+            move_value = self.do_move(self.pos_row, self.pos_col, self.pos_row, self.pos_col + 1)
+            if move_value >= 1:
                 self.pos_col += 1
             self.map[self.pos_row][self.pos_col] += self.to_direction(2) - \
                                                         self.to_direction(
                                                             self.get_direction(self.map[self.pos_row][self.pos_col]))
         elif self.move_flag == 3:
-            if self.do_move(self.pos_row, self.pos_col, self.pos_row + 1, self.pos_col) == 1:
+            move_value = self.do_move(self.pos_row, self.pos_col, self.pos_row + 1, self.pos_col)
+            if move_value >= 1:
                 self.pos_row += 1
             self.map[self.pos_row][self.pos_col] += self.to_direction(3) - \
                                                         self.to_direction(
                                                             self.get_direction(self.map[self.pos_row][self.pos_col]))
         elif self.move_flag == 4:
-            if self.do_move(self.pos_row, self.pos_col, self.pos_row, self.pos_col - 1) == 1:
+            move_value = self.do_move(self.pos_row, self.pos_col, self.pos_row, self.pos_col - 1)
+            if move_value >= 1:
                 self.pos_col -= 1
             self.map[self.pos_row][self.pos_col] += self.to_direction(4) - \
                                                         self.to_direction(
@@ -262,8 +271,11 @@ cdef class Worldmor:
         self.recalculate_map_range()
         self.shoot_flag = 0
         self.move_flag = 0
-        # TODO: Write game logic
-        # TODO: Write AI levels and moves
+        if move_value == 2:
+            return ADD_POINTS
+        else:
+            return 0
+        # TODO: Write AI logic + some level set
 
     @cython.boundscheck(False)
     cdef void do_shoot(self, int row, int col):
@@ -455,7 +467,8 @@ cdef class Worldmor:
         if do == 1:
             self.map[new_row][new_col] = self.map[old_row][old_col] + add
             self.map[old_row][old_col] = 0 + self.to_visible(1)
-            return 1
+            if code == BLOOD: return 2
+            else: return 1
         return 0
 
     @cython.boundscheck(False)

@@ -49,8 +49,7 @@ class TickThread(QtCore.QThread):
             if self.kill:
                 return
 
-            #TODO: score collect and show
-            self.worldmor.do_one_time_moment()
+            self.score += self.worldmor.do_one_time_moment()
             # emit update signal to main thread
             self.signal_update.emit()
             # emit score signal to main thread
