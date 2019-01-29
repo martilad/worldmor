@@ -302,6 +302,9 @@ cdef class Worldmor:
         self.recalculate_map_range()
         self.shoot_flag = 0
         self.move_flag = 0
+
+        if self.map[self.pos_row][self.pos_col] % 100 == BLOOD:
+            return -1
         if move_value == 2:
             return ADD_POINTS
         else:

@@ -17,6 +17,8 @@ class TickThread(QtCore.QThread):
 
     # Signal for update
     signal_update = QtCore.pyqtSignal()
+    # Signal for game over
+    signal_game_over = QtCore.pyqtSignal()
     # Signal for set score bar
     signal_score = QtCore.pyqtSignal(int, int, int)
 
@@ -48,7 +50,13 @@ class TickThread(QtCore.QThread):
             if self.kill:
                 return
 
-            self.score += self.worldmor.do_one_time_moment()
+            back = self.worldmor.do_one_time_moment()
+
+            if back == -1:
+                # signalize end game
+                self.signal_game_over.emit()
+            else:
+                self.score += back
             # emit update signal to main thread
             self.signal_update.emit()
             # emit score signal to main thread
@@ -273,7 +281,7 @@ class MyWindow(QtWidgets.QMainWindow):
         if e.key() == QtCore.Qt.Key_Return:
             if modifiers == QtCore.Qt.AltModifier:
                 self.app.fullscreen()
-            elif modifiers == QtCore.Qt.NoModifier and self.grid.started == False:
+            elif modifiers == QtCore.Qt.NoModifier and self.grid.started is False:
                 self.grid.started = True
                 self.resume()
 
@@ -342,12 +350,20 @@ class App:
 
         App.action_bind(self.window, 'actionAbout', lambda: self.about_dialog(), QtWidgets.QAction)
 
-        # TODO: need dialog after game, some with score or leader bord maybe?
         self.window.menuBar().setVisible(True)
         # connect signal from thread for update
         self.tick_thread.signal_update.connect(self.update_signal)
-        # connect score signal from thread for update
+        # connect score signal from thread
         self.tick_thread.signal_score.connect(self.update_status_bar)
+        # connect game over signal from thread
+        self.tick_thread.signal_game_over.connect(self.game_over)
+
+    def game_over(self):
+        """Show dialog when the game end."""
+        self.window.pause()
+        #TODO: end game dialog
+        # TODO: need dialog after game, some with score or leader bord maybe?
+        print("end game dialog")
 
     def update_signal(self):
         """Connected function to signal in ticking thread for correct updates."""
