@@ -66,6 +66,9 @@ cdef int BULLETS_ADD = 20
 """Health in one health box"""
 cdef int HEALTH_ADD = 10
 
+"""Number of bullets which have enemy on start"""
+cdef int ENEMY_START_BULLETS = 10
+
 """The base probability of wall.
  
 Calculate as p=WALL_BASE_PROBABILITY/(WALL_DIVIDER_BASE^walls-1)
@@ -818,7 +821,7 @@ cdef class Worldmor:
 
         if (rand() / <float> RAND_MAX) < min(self.enemy_max_prob,
                                              self.enemy_start_probability * (distance / self.enemy_distance_divider)):
-            return to_set + self.to_health(100) + self.to_bullets(20)+ self.to_gun(GUN_B) + \
+            return to_set + self.to_health(100) + self.to_bullets(ENEMY_START_BULLETS)+ self.to_gun(GUN_B) + \
                    ((rand() % (ENEMY_E - ENEMY_B)) + ENEMY_B + 1)
 
         if (rand() / <float> RAND_MAX) < min(self.guns_max_prob,
