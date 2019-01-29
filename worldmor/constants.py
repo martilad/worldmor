@@ -1,4 +1,3 @@
-
 """Default cell size in grid."""
 CELL_SIZE = 70
 
@@ -12,7 +11,7 @@ MAX_CELL_SIZE = 100
 ZOOM_CELL_STEP = 2
 
 """One tick in game. Discrete time. With low tick can simulate continual time theoretical."""
-TICK_TIME = 0.17
+TICK_TIME = 0.1
 
 """Specifies how large the images from the SVG format will be rendered in pixels. 
 Higher resolution may slow down the game."""
@@ -20,6 +19,25 @@ RENDER_RECT_SIZE = 500
 
 """Initial map size. It does not matter much because the map is endless and can be moved freely."""
 START_MAP_SIZE = 50
+
+"""What is the view range of AI enemies. 1 easy the dont see far, but with the same as VIEW_RANGE it is hard."""
+HOW_FAR_SEE_AI = 3
+
+"""Haw fast will be the AI. Maximum is 9 for very slow and 0 for fast AI."""
+HOW_LONG_BETWEEN_TURN_AI = 5
+
+"""Probability of go for player. Select direction to player."""
+GO_FOR_PLAYER_AI_PROB = 0.1 # systematic find and to this direction
+
+"""Probability of go for nearest gun."""
+GO_FOR_GUN_AI_PROB = 0.05 # if in near is gun catch it
+
+"""Probability of go for nearest health."""
+GO_FOR_HEALTH_AI_PROB = 0.9 # if in near is health catch it, if need
+
+"""Probability of go for nearest bullets."""
+GO_FOR_BULLETS_AI_PROB = 0.1 # if in near is bullets catch it, if need
+
 
 """Text show on start the game."""
 START_GAME_TEXT = "PRESS ENTER TO START"

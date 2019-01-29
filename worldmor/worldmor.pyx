@@ -31,14 +31,19 @@ cpdef enum:
     EXPLODE = 21
 
 """The probability of free points on map."""
-cdef double PROBABILITY_OF_FREE_POINTS = 0.001
+cdef double PROBABILITY_OF_FREE_POINTS = 0.002
+
 
 """Start zone where are no items generated."""
 cdef int STARTING_PROTECTION_ZONE = 4
+
+#TODO: move
 """How far a character sees."""
 cdef int VIEW_RANGE = 6
+
+#TODO: move
 """How far is do the game play. AI move, and do all checks"""
-cdef int CHECK_RANGE = 30
+cdef int CHECK_RANGE = 40
 
 """How many points add when collect blood."""
 cdef int ADD_POINTS = 10
@@ -82,11 +87,17 @@ cdef double WALL_BASE_PROBABILITY = 0.45
 """Base in divider. The formula described in WALL_BASE_PROBABILITY comment above."""
 cdef double WALL_DIVIDER_BASE = 3
 
+# Coords when do refactor the map to resize it.
 cdef struct coords:
     int row_min
     int row_max
     int col_min
     int col_max
+
+# Position on map
+cdef struct cord_move:
+    int row
+    int col
 
 cdef class Worldmor:
     """Game"""
@@ -118,10 +129,19 @@ cdef class Worldmor:
     cdef int move_flag
     cdef int shoot_flag
 
+    cdef int how_far_see_ai
+    cdef int how_long_between_turn_ai
+    cdef double go_for_player_ai_prob
+    cdef double go_for_gun_ai_prob
+    cdef double go_for_health_ai_prob
+    cdef double go_for_bullets_ai_prob
+
     def __cinit__(self, int rows, int random_seed, double bullets_exponent, double bullets_multiply,
                   double bullets_max_prob, double health_exponent, double health_multiply, double health_max_prob,
                   double enemy_start_probability, double enemy_distance_divider, double enemy_max_prob,
-                  double guns_exponent, double guns_multiply, double guns_max_prob):
+                  double guns_exponent, double guns_multiply, double guns_max_prob, int how_far_see_ai,
+                  int how_long_between_turn_ai, double go_for_player_ai_prob, double go_for_gun_ai_prob,
+                  double go_for_health_ai_prob, double go_for_bullets_ai_prob):
         """Init"""
         srand(random_seed)
         self.bullets_exponent = bullets_exponent
@@ -140,6 +160,13 @@ cdef class Worldmor:
         self.guns_multiply = guns_multiply
         self.guns_max_prob = guns_max_prob
 
+        self.how_far_see_ai = how_far_see_ai
+        self.how_long_between_turn_ai = how_long_between_turn_ai
+        self.go_for_player_ai_prob = go_for_player_ai_prob
+        self.go_for_bullets_ai_prob = go_for_bullets_ai_prob
+        self.go_for_health_ai_prob = go_for_health_ai_prob
+        self.go_for_gun_ai_prob = go_for_gun_ai_prob
+
         self.move_flag = 0
         self.shoot_flag = 0
         cdef int i, j
@@ -150,7 +177,7 @@ cdef class Worldmor:
         self.mid_row = <int> (rows / 2)
         self.mid_col = <int> (rows / 2)
         self.map = <unsigned long long **> PyMem_Malloc(self.rows * sizeof(unsigned long long*))
-
+        # generate the map
         for i in range(self.rows):
             self.map[i] = <unsigned long long *> PyMem_Malloc(self.cols * sizeof(unsigned long long))
             for j in range(self.cols):
@@ -237,7 +264,7 @@ cdef class Worldmor:
 
         # shoot before move
         if self.shoot_flag == 1:
-            self.do_shoot(self.pos_row, self.pos_col)
+            self.do_shoot(self.pos_row, self.pos_col, self.get_direction(self.map[self.pos_row][self.pos_col]))
         # move and collect
         cdef int move_value = 0
         if self.move_flag == 1:
@@ -270,7 +297,8 @@ cdef class Worldmor:
                                                             self.get_direction(self.map[self.pos_row][self.pos_col]))
         # shoot after move
         if self.shoot_flag == 2:
-            self.do_shoot(self.pos_row, self.pos_col)
+            self.do_shoot(self.pos_row, self.pos_col, self.get_direction(self.map[self.pos_row][self.pos_col]))
+        # there are do the ai steps
         self.recalculate_map_range()
         self.shoot_flag = 0
         self.move_flag = 0
@@ -278,10 +306,9 @@ cdef class Worldmor:
             return ADD_POINTS
         else:
             return 0
-        # TODO: Write AI logic + some level set
 
     @cython.boundscheck(False)
-    cdef void do_shoot(self, int row, int col):
+    cdef void do_shoot(self, int row, int col, int direction):
         """Method for doing shoot logic for the one field with player or enemy.
         Check bullets, gun and do shoot logic.
         When kill adds score blood to map.
@@ -290,15 +317,14 @@ cdef class Worldmor:
         :param col: col position
         """
         # check bullets
-        cdef int bullets = self.get_bullets(self.map[self.pos_row][self.pos_col])
-        cdef int gun = self.get_gun(self.map[self.pos_row][self.pos_col])
+        cdef int bullets = self.get_bullets(self.map[row][col])
+        cdef int gun = self.get_gun(self.map[row][col])
         cdef int down_bullets = self.get_bullets_dec(gun)
         if bullets - down_bullets <= 0: return
         cdef int check_col, row_min, row_max, row_step = 1, col_min, col_max, col_step = 1, code, check_health
-        cdef int direction = self.get_direction(self.map[self.pos_row][self.pos_col])
         cdef int kill = 0, br = 0, strong, distance
         # get gun parameters
-        self.map[self.pos_row][self.pos_col] -= self.to_bullets(down_bullets)
+        self.map[row][col] -= self.to_bullets(down_bullets)
         strong = self.get_strong(gun)
         distance = self.get_distance(gun)
         # direction of shoot
@@ -338,6 +364,8 @@ cdef class Worldmor:
         while row_min != row_max:
             col_min = check_col
             while col_min != col_max:
+                if row_min < 0 or row_min >= self.rows or col_min < 0 or col_min >= self.cols:
+                    continue
                 code = self.map[row_min][col_min] % 100
                 if code == WALL:
                     check_health = self.get_health(self.map[row_min][col_min]) - strong
@@ -437,8 +465,10 @@ cdef class Worldmor:
         """
         cdef int code
         cdef int do = 0
-        cdef unsigned long long add = 0
-
+        cdef unsigned long long add = 0, visible_old, visible_new
+        if new_row < 0 or new_row >= self.rows or new_col < 0 or new_col >= self.cols or \
+                (old_col == new_col and old_row == new_row):
+            return 0
         code = self.map[new_row][new_col] % 100
         # check code of new field and do the steps for the character
         if code == GRASS or code == BLOOD:
@@ -468,8 +498,11 @@ cdef class Worldmor:
             do = 1
             add = self.to_gun(GUN_E - self.get_gun(self.map[old_row][old_col]))
         if do == 1:
-            self.map[new_row][new_col] = self.map[old_row][old_col] + add
-            self.map[old_row][old_col] = 0 + self.to_visible(1)
+            visible_old = self.get_visible(self.map[old_row][old_col])
+            visible_new = self.get_visible(self.map[new_row][new_col])
+            self.map[new_row][new_col] = self.map[old_row][old_col] + add - \
+                                         self.to_visible(visible_old) + self.to_visible(visible_new)
+            self.map[old_row][old_col] = 0 + self.to_visible(visible_old)
             if code == BLOOD: return 2
             else: return 1
         return 0
@@ -488,7 +521,9 @@ cdef class Worldmor:
             for col in range(self.pos_col - CHECK_RANGE, self.pos_col + CHECK_RANGE + 1):
                 if row < 0 or row >= self.rows or col < 0 or col >= self.cols:
                     continue
-                distance = sqrt(abs(row - self.pos_row) ** 2 + abs(col - self.pos_col) ** 2)
+                if ENEMY_B <= self.map[row][col] % 100 <= ENEMY_E:
+                    self.enemy_ai(row, col)
+                distance = self.e_distance(row, col, self.pos_row, self.pos_col)
                 visibility = self.get_visible(self.map[row][col])
                 if visibility > 3:
                     self.map[row][col] -= self.to_visible(1)
@@ -502,6 +537,153 @@ cdef class Worldmor:
                 else: # could not see do it in "fog"
                     if visibility == 1:
                         self.map[row][col] += self.to_visible(1)
+
+
+    @cython.boundscheck(False)
+    @cython.cdivision(True)
+    cdef double e_distance(self, int row_1, int col_1, int row_2, int col_2):
+        """Count the Euclidean distance between two points in the map."""
+        return sqrt(<double>(abs(row_1 - row_2) ** 2) + abs(col_1 - col_2) ** 2)
+
+    @cython.boundscheck(False)
+    @cython.cdivision(True)
+    cdef void enemy_ai(self, int row, int col):
+        """Do turn off enemies. Do shoot on the player, when can, or go near to shoot if see the player. 
+        Can do other turns when having no live to find pharmacies, bullets when not have bullets, etc...
+        When not have bullet dont shoot but try to find with some probability for example.
+        
+        :param row: row position of enemy
+        :param col: column position of enemy
+        """
+        # wait for draw
+        cdef int direction = self.get_direction(self.map[row][col])
+        if direction > 0:
+            self.map[row][col] -= self.to_direction(1)
+            return
+
+        self.map[row][col] += self.to_direction(self.how_long_between_turn_ai)
+        # Count distance from player
+        cdef double distance = self.e_distance(row, col, self.pos_row, self.pos_col)
+        # Count the probability of health need
+        cdef double health_prob = self.go_for_health_ai_prob * (1 - self.get_health(self.map[row][col])/MAX_HEALTH)
+        # Count probability of bullets need
+        cdef double bullets_prob = self.go_for_bullets_ai_prob * (1 - self.get_bullets(self.map[row][col])/MAX_BULLETS)
+        cdef cord_move cords
+        cdef int row_diff = 0, col_diff = 0, gun_shoot_range
+        # enemy see the player move to kill or kill
+        if distance <= self.how_far_see_ai and <int>self.get_bullets(self.map[row][col]) > <int>self.get_bullets_dec(self.get_gun(self.map[row][col])):
+            gun_shoot_range = self.get_distance(self.get_gun(self.map[row][col]))
+            if row == self.pos_row and abs(col - self.pos_col) <= gun_shoot_range:
+                if self.pos_col < col:
+                    self.do_shoot(row, col, 4)
+                else:
+                    self.do_shoot(row, col, 2)
+                return
+            elif col == self.pos_col and abs(row - self.pos_row) <= gun_shoot_range:
+                if self.pos_row < row:
+                    self.do_shoot(row, col, 1)
+                else:
+                    self.do_shoot(row, col, 3)
+                return
+            else:
+                row_diff = self.pos_row - row
+                col_diff = self.pos_col - col
+
+        # go for health
+        elif (rand() / <float> RAND_MAX) < health_prob:
+            cords = self.find_nearest(row, col, HEALTH, HEALTH)
+            row_diff = cords.row - row
+            col_diff = cords.col - col
+
+        # go for bullets
+        elif (rand() / <float> RAND_MAX) < bullets_prob:
+            cords = self.find_nearest(row, col, BULLET, BULLET)
+            row_diff = cords.row - row
+            col_diff = cords.col - col
+
+        # go for gun
+        elif (rand() / <float> RAND_MAX) < self.go_for_gun_ai_prob:
+            cords = self.find_nearest(row, col, GUN_B, GUN_E)
+            row_diff = cords.row - row
+            col_diff = cords.col - col
+
+        # go for player
+        elif (rand() / <float> RAND_MAX) < self.go_for_player_ai_prob:
+            row_diff = self.pos_row - row
+            col_diff = self.pos_col - col
+
+        else:
+            # random move or not when hit 0 :]
+            if rand() % 2 == 0:
+                row_diff = ((rand() % 3) - 1)
+            else:
+                col_diff = ((rand() % 3) - 1)
+
+        # Do the move, in some prob in row, then in col and of 0 do in row if can
+        if row_diff != 0 and (rand() / <float> RAND_MAX) < 0.5:
+            # move in row
+            if row_diff < 0:
+                self.do_move(row, col, row-1, col)
+            elif row_diff > 0:
+                self.do_move(row, col, row+1, col)
+            else:
+                return
+        elif col_diff != 0:
+            # move in col
+            if col_diff < 0:
+                self.do_move(row, col, row, col-1)
+            elif col_diff > 0:
+                self.do_move(row, col, row, col+1)
+            else:
+                return
+        else:
+            # move in row
+            if row_diff < 0:
+                self.do_move(row, col, row-1, col)
+            elif row_diff > 0:
+                self.do_move(row, col, row+1, col)
+            else:
+                return
+
+    @cython.cdivision(True)
+    @cython.boundscheck(False)
+    cdef cord_move find_nearest(self, int row, int col, int need_down_bound, int need_up_bound):
+        """Find the nearest item what is need.
+        
+        :param row: row position
+        :param col: column position
+        :param need_down_bound: lower bound of range for finding all gun for example
+        :param need_up_bound: upper bound for finding items
+        :return: coordinates where is the item
+        """
+        cdef int check_row, check_column, find_row = -1, find_col = -1
+        cdef double tmp
+        cdef double find_distance = self.how_far_see_ai*2
+        for check_row in range(row - self.how_far_see_ai, row + self.how_far_see_ai + 1):
+            for check_column in range(col - self.how_far_see_ai, col + self.how_far_see_ai + 1):
+                # out from map continue
+                if check_row < 0 or check_row >= self.rows or check_column < 0 or check_column >= self.cols:
+                    continue
+                # my position continue
+                if check_row == row and check_column == col:
+                    continue
+                # find some if it nearest?
+                if need_down_bound <= (<int>(self.map[check_row][check_column] % 100)) <= need_up_bound:
+                    tmp = self.e_distance(check_row, check_column, row, col)
+                    if tmp < find_distance:
+                        find_distance = tmp
+                        find_row = check_row
+                        find_col = check_column
+
+        if find_row == -1 and find_col == -1:
+            if rand() % 2 == 0:
+                find_row = row+((rand() % 3) - 1)
+                find_col = 0
+            else:
+                find_col = col+((rand() % 3) - 1)
+                find_row = 0
+        return cord_move(find_row, find_col)
+
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -546,7 +728,7 @@ cdef class Worldmor:
         """
         # Not do garbage near player.
         cdef int walls = self.count_near_walls(row, column)
-        cdef double distance = sqrt(abs(row - self.mid_row) ** 2 + abs(column - self.mid_col) ** 2)
+        cdef double distance = self.e_distance(row, column, self.mid_row, self.mid_col)
         cdef unsigned long long to_set
         if distance < VIEW_RANGE:
             to_set = self.to_visible(1)
