@@ -30,6 +30,9 @@ cpdef enum:
 
     EXPLODE = 21
 
+"""The probability of free points on map."""
+cdef double PROBABILITY_OF_FREE_POINTS = 0.001
+
 """Start zone where are no items generated."""
 cdef int STARTING_PROTECTION_ZONE = 4
 """How far a character sees."""
@@ -572,6 +575,9 @@ cdef class Worldmor:
         if (rand() / <float> RAND_MAX) < min(self.guns_max_prob,
                                              (1 / (distance ** self.guns_exponent)) * self.guns_multiply):
             return to_set + ((rand() % (GUN_E - GUN_B)) + GUN_B + 1)
+
+        if (rand() / <float> RAND_MAX) < PROBABILITY_OF_FREE_POINTS:
+            return to_set + BLOOD
 
         return to_set + 0
 
