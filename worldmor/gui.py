@@ -470,8 +470,8 @@ class App:
                                  guns_exponent=GUNS_EXPONENT, guns_multiply=GUNS_MULTIPLY, guns_max_prob=GUNS_MAX_PROB,
                                  how_far_see_ai=HOW_FAR_SEE_AI, how_long_between_turn_ai=HOW_LONG_BETWEEN_TURN_AI,
                                  go_for_player_ai_prob=GO_FOR_PLAYER_AI_PROB, go_for_gun_ai_prob=GO_FOR_GUN_AI_PROB,
-                                 go_for_health_ai_prob=GO_FOR_HEALTH_AI_PROB,
-                                 go_for_bullets_ai_prob=GO_FOR_BULLETS_AI_PROB)
+                                 go_for_health_ai_prob=GO_FOR_HEALTH_AI_PROB, view_range=VIEW_RANGE,
+                                 go_for_bullets_ai_prob=GO_FOR_BULLETS_AI_PROB, check_range=CHECK_RANGE)
 
     def about_dialog(self):
         """Show about dialog save in about.py."""

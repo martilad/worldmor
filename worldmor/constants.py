@@ -20,6 +20,12 @@ RENDER_RECT_SIZE = 500
 """Initial map size. It does not matter much because the map is endless and can be moved freely."""
 START_MAP_SIZE = 50
 
+"""How far a character sees."""
+VIEW_RANGE = 6
+
+"""How far is do the game play. AI move, and do all checks"""
+CHECK_RANGE = 40
+
 """What is the view range of AI enemies. 1 easy the dont see far, but with the same as VIEW_RANGE it is hard."""
 HOW_FAR_SEE_AI = 3
 

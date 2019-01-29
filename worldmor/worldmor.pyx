@@ -37,14 +37,6 @@ cdef double PROBABILITY_OF_FREE_POINTS = 0.002
 """Start zone where are no items generated."""
 cdef int STARTING_PROTECTION_ZONE = 4
 
-#TODO: move
-"""How far a character sees."""
-cdef int VIEW_RANGE = 6
-
-#TODO: move
-"""How far is do the game play. AI move, and do all checks"""
-cdef int CHECK_RANGE = 40
-
 """How many points add when collect blood."""
 cdef int ADD_POINTS = 10
 
@@ -57,13 +49,13 @@ cdef int GUN_1_BULLETS = 5
 cdef int GUN_1_DISTANCE = 2
 cdef int GUN_2_STRONG = 20
 cdef int GUN_2_BULLETS = 1
-cdef int GUN_2_DISTANCE = VIEW_RANGE - 2
+cdef int GUN_2_DISTANCE = 4
 cdef int GUN_3_STRONG = 55
 cdef int GUN_3_BULLETS = 6
-cdef int GUN_3_DISTANCE = <int>(VIEW_RANGE / 2)
+cdef int GUN_3_DISTANCE = 3
 cdef int GUN_E_STRONG = 34
 cdef int GUN_E_BULLETS = 3
-cdef int GUN_E_DISTANCE = VIEW_RANGE - 1
+cdef int GUN_E_DISTANCE = 5
 
 """Max bullets 0 - 999"""
 cdef int MAX_BULLETS = 666
@@ -129,6 +121,9 @@ cdef class Worldmor:
     cdef int move_flag
     cdef int shoot_flag
 
+    cdef int view_range
+    cdef int check_range
+
     cdef int how_far_see_ai
     cdef int how_long_between_turn_ai
     cdef double go_for_player_ai_prob
@@ -141,7 +136,7 @@ cdef class Worldmor:
                   double enemy_start_probability, double enemy_distance_divider, double enemy_max_prob,
                   double guns_exponent, double guns_multiply, double guns_max_prob, int how_far_see_ai,
                   int how_long_between_turn_ai, double go_for_player_ai_prob, double go_for_gun_ai_prob,
-                  double go_for_health_ai_prob, double go_for_bullets_ai_prob):
+                  double go_for_health_ai_prob, double go_for_bullets_ai_prob, int check_range, int view_range):
         """Init"""
         srand(random_seed)
         self.bullets_exponent = bullets_exponent
@@ -169,6 +164,10 @@ cdef class Worldmor:
 
         self.move_flag = 0
         self.shoot_flag = 0
+
+        self.view_range = view_range
+        self.check_range = check_range
+
         cdef int i, j
         self.rows = rows
         self.cols = rows
@@ -520,8 +519,8 @@ cdef class Worldmor:
         cdef double distance
         cdef unsigned long long visibility
         # Calculate possibly range where can change the visibility
-        for row in range(self.pos_row - CHECK_RANGE, self.pos_row + CHECK_RANGE + 1):
-            for col in range(self.pos_col - CHECK_RANGE, self.pos_col + CHECK_RANGE + 1):
+        for row in range(self.pos_row - self.check_range, self.pos_row + self.check_range + 1):
+            for col in range(self.pos_col - self.check_range, self.pos_col + self.check_range + 1):
                 if row < 0 or row >= self.rows or col < 0 or col >= self.cols:
                     continue
                 if ENEMY_B <= self.map[row][col] % 100 <= ENEMY_E:
@@ -532,7 +531,7 @@ cdef class Worldmor:
                     self.map[row][col] -= self.to_visible(1)
                 if visibility == 3:
                     self.map[row][col] -= self.to_visible(2)
-                if distance < VIEW_RANGE:  # if could see
+                if distance < self.view_range:  # if could see
                     if visibility == 2: # Player see this field
                         self.map[row][col] -= self.to_visible(1)
                     if visibility == 0: # Player dont see this field
@@ -733,7 +732,7 @@ cdef class Worldmor:
         cdef int walls = self.count_near_walls(row, column)
         cdef double distance = self.e_distance(row, column, self.mid_row, self.mid_col)
         cdef unsigned long long to_set
-        if distance < VIEW_RANGE:
+        if distance < self.view_range:
             to_set = self.to_visible(1)
         else:
             to_set = self.to_visible(0)
