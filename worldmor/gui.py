@@ -40,7 +40,6 @@ class TickThread(QtCore.QThread):
 
     def run(self):
         """Run thread, run as pause and resume when rendering window."""
-        self.resume()
         while True:
             with self.state:
                 if self.paused:
@@ -84,9 +83,8 @@ class GridWidget(QtWidgets.QWidget):
         self.worldmor = worldmor
         self.tick_thread = tick_thread
         self.setMinimumSize(*self.logical_to_pixels(3, 3))
-        self.tick_thread.resume()
-        self.lock = threading.Lock()
         self.health_pen_size = 2
+        self.started = False
 
     def pixels_to_logical(self, x, y):
         """Convert pixels to logical size of the field.
@@ -150,7 +148,7 @@ class GridWidget(QtWidgets.QWidget):
                     health = (int(w_map[row, column] / 1000)) % 1000
                     self.tick_thread.health = health  # get health
                     self.tick_thread.bullets = (int(w_map[row, column] / 1000000)) % 1000  # get bullets
-                    self.drawHealth(x, y, health, painter)
+                    self.draw_health(x, y, health, painter)
                 elif code == BULLET:
                     # render three bullets
                     painter.drawImage(QtCore.QRectF(x, y, self.cell_size, self.cell_size), self.images[BULLET])
@@ -186,15 +184,28 @@ class GridWidget(QtWidgets.QWidget):
                     painter.drawImage(rect, self.images[EXPLODE])
                 if ENEMY_B <= code <= ENEMY_E or code == PLAYER:
                     health = (int(w_map[row, column] / 1000)) % 1000
-                    self.drawHealth(x, y, health, painter)
+                    self.draw_health(x, y, health, painter)
                     gun = (int(w_map[row, column] / 100000000000)) % 100
                     if GUN_B <= gun <= GUN_E:
                         painter.drawImage(QtCore.QRectF(x + self.cell_size / 3, y + self.cell_size / 3,
-                                                    self.cell_size - self.cell_size / 3,
-                                                    self.cell_size - self.cell_size / 3),
-                                      self.images[gun])
+                                                        self.cell_size - self.cell_size / 3,
+                                                        self.cell_size - self.cell_size / 3),
+                                          self.images[gun])
+        if not self.started:
+            self.draw_start_text()
 
-    def drawHealth(self, x, y, health, painter):
+    def draw_start_text(self):
+        """Draw the start text to press enter to start the game."""
+        painter = QtGui.QPainter(self)
+        painter.setPen(QtGui.QColor(0, 0, 0, 180))
+        font = QtGui.QFont("Times", self.cell_size/3.3, QtGui.QFont.Bold)
+        painter.setFont(font)
+        painter.drawText(
+            QtCore.QRectF(self.width() / 2 - self.cell_size * 5 / 2, self.height() / 2 - self.cell_size * 5 / 2,
+                          self.cell_size * 5, self.cell_size * 5), QtCore.Qt.AlignLeft,
+            START_GAME_TEXT)
+
+    def draw_health(self, x, y, health, painter):
         """Draw health bar for characters."""
         painter.drawRect(QtCore.QRectF(x + self.cell_size / 20, y,
                                        self.cell_size - self.cell_size / 10,
@@ -230,7 +241,7 @@ class MyWindow(QtWidgets.QMainWindow):
         self.app = app
 
     def keyPressEvent(self, e):
-        """Catch key press event and do move."""
+        """Catch key press event and do corresponding actions."""
         modifiers = QtGui.QGuiApplication.keyboardModifiers()
         if e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_A:
             self.worldmor.left()
@@ -262,10 +273,24 @@ class MyWindow(QtWidgets.QMainWindow):
         if e.key() == QtCore.Qt.Key_Return:
             if modifiers == QtCore.Qt.AltModifier:
                 self.app.fullscreen()
+            elif modifiers == QtCore.Qt.NoModifier and self.grid.started == False:
+                self.grid.started = True
+                self.resume()
 
     def update_status_bar(self, score, live, bullets):
         """Show score, live and number of bullets in status bar."""
-        self.statusBar.showMessage("Score: %s    Live: %s   Bullets: %s" % (int(score), int(live), int(bullets)))
+        self.statusBar.showMessage("%s: %s    %s: %s   %s: %s" % (SCORE_TEXT, int(score), HEALTH_TEXT,
+                                                                  int(live), BULLETS_TEXT, int(bullets)))
+
+    def resume(self):
+        """Resume the game using the pause the ticker."""
+        if self.grid.started:
+            self.tick_thread.resume()
+
+    def pause(self):
+        """Pause the game using the pause the ticker."""
+        if self.grid.started:
+            self.tick_thread.pause()
 
     def closeEvent(self, event):
         self.tick_thread.set_kill()
@@ -334,7 +359,7 @@ class App:
 
     def new_dialog(self):
         """Show question dialog if you really want create new game and eventually create it."""
-        self.tick_thread.pause()
+        self.window.pause()
         reply = QtWidgets.QMessageBox.question(self.window, 'New?',
                                                'Are you really want new game?',
                                                QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
@@ -343,8 +368,9 @@ class App:
             self.grid.worldmor = self.worldmor
             self.window.worldmor = self.worldmor
             self.tick_thread.worldmor = self.worldmor
+            self.grid.started = False
             self.grid.update()
-        self.tick_thread.resume()
+        self.window.resume()
 
     def load_dialog(self):
         print("load dialog")
@@ -363,7 +389,7 @@ class App:
 
     def exit_dialog(self):
         """Show question dialog if you really want to exit and eventually end the application."""
-        self.tick_thread.pause()
+        self.window.pause()
         reply = QtWidgets.QMessageBox.question(self.window, 'Exit?',
                                                'Are you really want exit the game?',
                                                QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
@@ -371,7 +397,7 @@ class App:
             self.tick_thread.set_kill()
             self.window.close()
         if reply == QtWidgets.QMessageBox.No:
-            self.tick_thread.resume()
+            self.window.resume()
 
     def fullscreen(self):
         """Switch to fullscreen or back"""
@@ -389,7 +415,7 @@ class App:
         if not self.full_screen:
             return
         # Pause game
-        self.tick_thread.pause()
+        self.window.pause()
         dialog = QtWidgets.QDialog(self.window)
         with open(App.get_gui_path('fullscreen_dialog.ui')) as f:
             uic.loadUi(f, dialog)
@@ -414,7 +440,7 @@ class App:
         """Manage fullscreen dialog push buttons to resume ticker and close dialog."""
         dialog.close()
         call()
-        self.tick_thread.resume()
+        self.window.resume()
         return
 
     def create_new_world(self):
@@ -428,9 +454,9 @@ class App:
 
     def about_dialog(self):
         """Show about dialog save in about.py."""
-        self.tick_thread.pause()
+        self.window.pause()
         QtWidgets.QMessageBox.about(self.window, "WorldMor", ABOUT)
-        self.tick_thread.resume()
+        self.window.resume()
 
     @staticmethod
     def action_bind(parent, name, func, what):

@@ -21,6 +21,14 @@ RENDER_RECT_SIZE = 500
 """Initial map size. It does not matter much because the map is endless and can be moved freely."""
 START_MAP_SIZE = 50
 
+"""Text show on start the game."""
+START_GAME_TEXT = "PRESS ENTER TO START"
+
+"""Texts in status bar."""
+SCORE_TEXT = "Score"
+BULLETS_TEXT = "Bullets"
+HEALTH_TEXT = "Live"
+
 """Constants for generate bullets on map, with a greater distance from the start, their numbers are greatly reduced.
 
 According to the following formula (distance is Euclidean distance from start):
