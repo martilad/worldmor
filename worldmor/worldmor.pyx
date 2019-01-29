@@ -719,6 +719,71 @@ cdef class Worldmor:
                 map_view[i, j] = self.map[co.row_min + i][co.col_min + j]
         return map_view
 
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    cpdef np.ndarray[np.int64_t, ndim=2] get_map_to_save(self):
+        """Return map as numpy array to save the game."""
+        cdef int i, j
+        cdef np.ndarray[np.int64_t, ndim=2] map_view = np.zeros((self.rows, self.cols), dtype=np.int64)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                map_view[i, j] = self.map[i][j]
+        return map_view
+
+    cpdef int get_pos_row(self):
+        return self.pos_row
+
+    cpdef int get_pos_col(self):
+        return self.pos_col
+
+    cpdef int get_mid_row(self):
+        return self.mid_row
+
+    cpdef int get_mid_col(self):
+        return self.mid_col
+
+    cpdef int get_ai_how_far_see(self):
+        return self.how_far_see_ai
+
+    cpdef int get_how_fast_ai_is(self):
+        return self.how_long_between_turn_ai
+
+    cpdef void set_pos_row(self, int pos_row):
+        self.pos_row = pos_row
+
+    cpdef void set_pos_col(self, int pos_col):
+        self.pos_col = pos_col
+
+    cpdef void set_mid_row(self, int mid_row):
+        self.mid_row = mid_row
+
+    cpdef void set_mid_col(self, int mid_col):
+        self.mid_col = mid_col
+
+    cpdef void set_ai_how_far_see(self, int how_far_see_ai):
+        self.how_far_see_ai = how_far_see_ai
+
+    cpdef void set_how_fast_ai_is(self, int how_long_between_turn_ai):
+        self.how_long_between_turn_ai = how_long_between_turn_ai
+
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    cpdef void put_map_to_game(self, np.ndarray[np.int64_t, ndim=2] map_view):
+        """Load game from numpy array, when load game."""
+        free_mem(self.map, self.rows)
+
+        cdef int i, j
+        self.rows = map_view.shape[0]
+        self.cols = map_view.shape[1]
+
+        self.map = <unsigned long long **> PyMem_Malloc(self.rows * sizeof(unsigned long long*))
+        # generate the map
+        for i in range(self.rows):
+            self.map[i] = <unsigned long long *> PyMem_Malloc(self.cols * sizeof(unsigned long long))
+            for j in range(self.cols):
+                self.map[i][j] = map_view[i, j]
+
+
     @cython.cdivision(True)
     @cython.boundscheck(False)
     cdef unsigned long long generate_part_of_map(self, int row, int column):

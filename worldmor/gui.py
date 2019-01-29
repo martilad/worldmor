@@ -1,6 +1,7 @@
 import os
 import threading
 import time
+import json
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
 from worldmor.worldmor import *
 from worldmor.about import ABOUT
@@ -111,28 +112,28 @@ class GridWidget(QtWidgets.QWidget):
     def paintEvent(self, event):
         """The event called when changing the game map or when the size of the game is change."""
 
-        row_max, col_max = self.pixels_to_logical(self.width(), self.height())
+        row_max_r, col_max_r = self.pixels_to_logical(self.width(), self.height())
 
-        row_max += 1
-        col_max += 1
+        row_max_r += 1
+        col_max_r += 1
 
         painter = QtGui.QPainter(self)
         painter.setPen(QtGui.QPen(QtGui.QBrush(QtGui.QColor(0, 0, 0)), self.health_pen_size))
 
-        w_map = self.worldmor.get_map(row_max, col_max)
+        w_map = self.worldmor.get_map(row_max_r, col_max_r)
 
-        for row in range(0, row_max):
-            for column in range(0, col_max):
+        for row_r in range(0, row_max_r):
+            for column_r in range(0, col_max_r):
 
                 # get place in map to color
-                x, y = self.logical_to_pixels(row, column)
+                x, y = self.logical_to_pixels(row_r, column_r)
 
                 rect = QtCore.QRectF(x, y, self.cell_size, self.cell_size)
 
                 # Get code for rendering
-                code = w_map[row, column] % 100
+                code = w_map[row_r, column_r] % 100
                 # Get visible -> what render
-                visible = int(w_map[row, column] / 100) % 10
+                visible = int(w_map[row_r, column_r] / 100) % 10
 
                 # Grass render on whole map
                 painter.drawImage(rect, self.images[GRASS])
@@ -153,9 +154,9 @@ class GridWidget(QtWidgets.QWidget):
                     painter.drawImage(rect, self.images[BLOOD])
                 elif code == PLAYER:
                     painter.drawImage(rect, self.images[PLAYER])
-                    health = (int(w_map[row, column] / 1000)) % 1000
+                    health = (int(w_map[row_r, column_r] / 1000)) % 1000
                     self.tick_thread.health = health  # get health
-                    self.tick_thread.bullets = (int(w_map[row, column] / 1000000)) % 1000  # get bullets
+                    self.tick_thread.bullets = (int(w_map[row_r, column_r] / 1000000)) % 1000  # get bullets
                     self.draw_health(x, y, health, painter)
                 elif code == BULLET:
                     # render three bullets
@@ -166,7 +167,7 @@ class GridWidget(QtWidgets.QWidget):
                                       self.images[BULLET])
                 elif code == HEALTH:
                     # render health
-                    painter.drawImage(QtCore.QRectF(x + self.cell_size / 3, y + self.cell_size / 2,
+                    painter.drawImage(QtCore.QRectF(x + self.cell_size / 6, y + self.cell_size / 4,
                                                     self.cell_size - self.cell_size / 3,
                                                     self.cell_size - self.cell_size / 2),
                                       self.images[HEALTH])
@@ -191,9 +192,9 @@ class GridWidget(QtWidgets.QWidget):
                 if visible > 2:
                     painter.drawImage(rect, self.images[EXPLODE])
                 if ENEMY_B <= code <= ENEMY_E or code == PLAYER:
-                    health = (int(w_map[row, column] / 1000)) % 1000
+                    health = (int(w_map[row_r, column_r] / 1000)) % 1000
                     self.draw_health(x, y, health, painter)
-                    gun = (int(w_map[row, column] / 100000000000)) % 100
+                    gun = (int(w_map[row_r, column_r] / 100000000000)) % 100
                     if GUN_B <= gun <= GUN_E:
                         painter.drawImage(QtCore.QRectF(x + self.cell_size / 3, y + self.cell_size / 3,
                                                         self.cell_size - self.cell_size / 3,
@@ -251,13 +252,13 @@ class MyWindow(QtWidgets.QMainWindow):
     def keyPressEvent(self, e):
         """Catch key press event and do corresponding actions."""
         modifiers = QtGui.QGuiApplication.keyboardModifiers()
-        if e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_A:
+        if (e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_A) and self.grid.started:
             self.worldmor.left()
-        if e.key() == QtCore.Qt.Key_Right or e.key() == QtCore.Qt.Key_D:
+        if (e.key() == QtCore.Qt.Key_Right or e.key() == QtCore.Qt.Key_D) and self.grid.started:
             self.worldmor.right()
-        if e.key() == QtCore.Qt.Key_Up or e.key() == QtCore.Qt.Key_W:
+        if (e.key() == QtCore.Qt.Key_Up or e.key() == QtCore.Qt.Key_W) and self.grid.started:
             self.worldmor.up()
-        if e.key() == QtCore.Qt.Key_Down or e.key() == QtCore.Qt.Key_S:
+        if (e.key() == QtCore.Qt.Key_Down or e.key() == QtCore.Qt.Key_S) and self.grid.started:
             if modifiers == QtCore.Qt.ControlModifier:
                 self.app.save_dialog()
             elif modifiers == (QtCore.Qt.ControlModifier |
@@ -265,7 +266,7 @@ class MyWindow(QtWidgets.QMainWindow):
                 self.app.save_as_dialog()
             else:
                 self.worldmor.down()
-        if e.key() == QtCore.Qt.Key_Space or e.key() == QtCore.Qt.Key_0:
+        if (e.key() == QtCore.Qt.Key_Space or e.key() == QtCore.Qt.Key_0) and self.grid.started:
             self.worldmor.shoot()
         if e.key() == QtCore.Qt.Key_N:
             if modifiers == QtCore.Qt.ControlModifier:
@@ -281,7 +282,7 @@ class MyWindow(QtWidgets.QMainWindow):
         if e.key() == QtCore.Qt.Key_Return:
             if modifiers == QtCore.Qt.AltModifier:
                 self.app.fullscreen()
-            elif modifiers == QtCore.Qt.NoModifier and self.grid.started is False:
+            elif modifiers == QtCore.Qt.NoModifier and not self.grid.started:
                 self.grid.started = True
                 self.resume()
 
@@ -338,6 +339,7 @@ class App:
         self.window.grid = self.grid
         self.window.worldmor = self.worldmor
         self.window.setCentralWidget(self.grid)
+        self.save_file = None
 
         # bind menu actions
         App.action_bind(self.window, 'actionNew', lambda: self.new_dialog(), QtWidgets.QAction)
@@ -366,7 +368,7 @@ class App:
         dialog = QtWidgets.QDialog(self.window)
         dialog.setWindowOpacity(.7)
         path = QtGui.QPainterPath()
-        path.addRoundedRect(QtCore.QRectF(0, 0, 300, 300), 20, 20);
+        path.addRoundedRect(QtCore.QRectF(0, 0, 300, 300), 20, 20)
 
         mask = QtGui.QRegion(path.toFillPolygon().toPolygon())
         dialog.setMask(mask)
@@ -379,7 +381,6 @@ class App:
         App.button_bind(dialog, 'exit', lambda: self.window.close(),
                         QtWidgets.QPushButton)
         dialog.findChild(QtWidgets.QLabel, "score_label").setText("Score: %s" % self.tick_thread.score)
-
 
         dialog.exec()
 
@@ -407,19 +408,74 @@ class App:
         self.window.resume()
 
     def load_dialog(self):
-        print("load dialog")
-        # TODO: normal load file dialog - check format
-        # TODO: pause time deamon
+        """Load game from file."""
+        self.window.pause()
+        # load from file dialog
+        file = QtWidgets.QFileDialog.getOpenFileName(self.window)
+        try:
+            file = open(file[0], 'r+')
+        except OSError as e:
+            QtWidgets.QMessageBox.critical(self.window, "Open error", e.strerror)
+        else:
+            with file:
+                try:
+                    loaded = file.readlines()
+                    score, how_far_ai, ai_fast, mid_row, mid_col, pos_row, pos_col = loaded[0].strip().split(",")
+                    self.tick_thread.score = int(score)
+                    self.worldmor.set_ai_how_far_see(int(how_far_ai))
+                    self.worldmor.set_how_fast_ai_is(int(ai_fast))
+                    self.worldmor.set_mid_row(int(mid_row))
+                    self.worldmor.set_mid_col(int(mid_col))
+                    self.worldmor.set_pos_row(int(pos_row))
+                    self.worldmor.set_pos_col(int(pos_col))
+                    self.worldmor.put_map_to_game(np.array(json.loads(loaded[1])).astype(np.int64))
+                    self.grid.started = False
+                    self.grid.update()
+                except (TypeError, ValueError) as e:
+                    print(e)
+                    QtWidgets.QMessageBox.critical(self.window, "File format error", "Bad format.")
 
     def save_dialog(self):
-        print("save dialog")
-        # TODO: save if file is known, or open file save dialog as save as
-        # TODO: pause time deamon
+        """Save game to last file."""
+        self.window.pause()
+        if self.save_file is not None:
+            try:
+                file_open = open(self.save_file[0], 'w')
+            except OSError as e:
+                QtWidgets.QMessageBox.critical(self.window, "Save game error", e.strerror)
+            else:
+                with file_open:
+                    self.save_game(file_open)
+                QtWidgets.QMessageBox.information(self.window, "Save game", "Game saved.")
+            self.window.resume()
+        else:
+            self.save_as_dialog()
 
     def save_as_dialog(self):
-        print("save as dialog")
-        # TODO: save dialog
-        # TODO: pause time deamon
+        """Save game to file."""
+        self.window.pause()
+
+        file = QtWidgets.QFileDialog.getSaveFileName(self.window)
+        try:
+            file_open = open(file[0], 'w')
+        except OSError as e:
+            QtWidgets.QMessageBox.critical(self.window, "Save game error", e.strerror)
+        else:
+            with file_open:
+                self.save_game(file_open)
+                self.save_file = file
+        self.window.resume()
+
+    def save_game(self, file):
+        """Save game to opened file.
+
+        :param file: open file to write
+        """
+        file.write("%s,%s,%s,%s,%s,%s,%s \n" % (self.tick_thread.score, self.worldmor.get_ai_how_far_see(),
+                                                self.worldmor.get_how_fast_ai_is(), self.worldmor.get_mid_row(),
+                                                self.worldmor.get_mid_col(), self.worldmor.get_pos_row(),
+                                                self.worldmor.get_pos_col()))
+        file.write(json.dumps(self.worldmor.get_map_to_save().tolist()))
 
     def exit_dialog(self):
         """Show question dialog if you really want to exit and eventually end the application."""
@@ -501,22 +557,24 @@ class App:
     def action_bind(parent, name, func, what):
         """Find function in QMAinWindow layout as child and bind to it the action.
 
-        :param parrent: name of parent where look for items
+        :param parent: name of parent where look for items
         :param name: name of child in gui
         :param func: function to bind
+        :param what: what element need to find
         """
         action = parent.findChild(what, name)
         action.triggered.connect(func)
 
     @staticmethod
-    def button_bind(parrent, name, func, what):
+    def button_bind(parent, name, func, what):
         """Find function in QMAinWindow layout as child and bind to it the action.
 
-        :param parrent: name of parrent where look for items
+        :param parent: name of parent where look for items
         :param name: name of child in gui
         :param func: function to bind
+        :param what: what element need to find
         """
-        action = parrent.findChild(what, name)
+        action = parent.findChild(what, name)
         action.clicked.connect(func)
 
     @staticmethod
