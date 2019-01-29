@@ -121,9 +121,9 @@
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>230</y>
+     <y>220</y>
      <width>111</width>
-     <height>51</height>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -132,17 +132,21 @@
      <pointsize>14</pointsize>
     </font>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
    <property name="text">
-    <string>New</string>
+    <string>New
+(Ctrl+N)</string>
    </property>
   </widget>
   <widget class="QPushButton" name="exit">
    <property name="geometry">
     <rect>
      <x>160</x>
-     <y>230</y>
+     <y>220</y>
      <width>111</width>
-     <height>51</height>
+     <height>61</height>
     </rect>
    </property>
    <property name="font">
@@ -151,8 +155,12 @@
      <pointsize>13</pointsize>
     </font>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
    <property name="text">
-    <string>Exit</string>
+    <string>Exit
+(Ctrl+E)</string>
    </property>
   </widget>
   <widget class="QLabel" name="score_label">
@@ -181,6 +189,10 @@
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>new_2</tabstop>
+  <tabstop>exit</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

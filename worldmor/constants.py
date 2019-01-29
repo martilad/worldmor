@@ -29,6 +29,24 @@ CHECK_RANGE = 40
 """What is the view range of AI enemies. 1 easy the dont see far, but with the same as VIEW_RANGE it is hard."""
 HOW_FAR_SEE_AI = 3
 
+"""View range of enemy on level 1"""
+LEVEL_1_AI_SIGHT = 1
+
+"""Time section between AI action for level 1. 0-9. 9 -> slow. 0 -> fast as possible."""
+LEVEL_1_AI_FAST = 9
+
+"""View range of enemy on level 2"""
+LEVEL_2_AI_SIGHT = 3
+
+"""Time section between AI action for level 2. 0-9. 9 -> slow. 0 -> fast as possible."""
+LEVEL_2_AI_FAST = 6
+
+"""View range of enemy on level 3"""
+LEVEL_3_AI_SIGHT = 6
+
+"""Time section between AI action for level 3. 0-9. 9 -> slow. 0 -> fast as possible."""
+LEVEL_3_AI_FAST = 3
+
 """Haw fast will be the AI. Maximum is 9 for very slow and 0 for fast AI."""
 HOW_LONG_BETWEEN_TURN_AI = 5
 

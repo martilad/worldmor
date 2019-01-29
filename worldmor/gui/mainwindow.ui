@@ -25,7 +25,7 @@
    </property>
    <widget class="QMenu" name="menuGame">
     <property name="title">
-     <string>Game</string>
+     <string>File</string>
     </property>
     <addaction name="actionNew"/>
     <addaction name="separator"/>
@@ -47,7 +47,16 @@
     </property>
     <addaction name="actionFullscreen"/>
    </widget>
+   <widget class="QMenu" name="menuGame_2">
+    <property name="title">
+     <string>Game</string>
+    </property>
+    <addaction name="level_1"/>
+    <addaction name="level_2"/>
+    <addaction name="level_3"/>
+   </widget>
    <addaction name="menuGame"/>
+   <addaction name="menuGame_2"/>
    <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -103,6 +112,36 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="level_1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Level 1</string>
+   </property>
+  </action>
+  <action name="level_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Level 2</string>
+   </property>
+  </action>
+  <action name="level_3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Level 3</string>
    </property>
   </action>
  </widget>

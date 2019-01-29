@@ -102,12 +102,12 @@ class GridWidget(QtWidgets.QWidget):
         """
         return y // self.cell_size, x // self.cell_size
 
-    def logical_to_pixels(self, row, column):
+    def logical_to_pixels(self, row_c, column_c):
         """Convert from a logical field in the game to the pixel to paint color or image.
 
         :return: pixels in grid
         """
-        return column * self.cell_size, row * self.cell_size
+        return column_c * self.cell_size, row_c * self.cell_size
 
     def paintEvent(self, event):
         """The event called when changing the game map or when the size of the game is change."""
@@ -360,6 +360,25 @@ class App:
         # connect game over signal from thread
         self.tick_thread.signal_game_over.connect(self.game_over)
 
+        # do levels
+        self.level1 = self.window.findChild(QtWidgets.QAction, "level_1")
+        self.level2 = self.window.findChild(QtWidgets.QAction, "level_2")
+        self.level3 = self.window.findChild(QtWidgets.QAction, "level_3")
+        self.worldmor.set_how_fast_ai_is(LEVEL_1_AI_FAST)
+        self.worldmor.set_ai_how_far_see(LEVEL_1_AI_SIGHT)
+        self.level1.triggered.connect(lambda: self.level_set(self.level1, LEVEL_1_AI_SIGHT, LEVEL_1_AI_FAST))
+        self.level2.triggered.connect(lambda: self.level_set(self.level2, LEVEL_2_AI_SIGHT, LEVEL_2_AI_FAST))
+        self.level3.triggered.connect(lambda: self.level_set(self.level3, LEVEL_3_AI_SIGHT, LEVEL_3_AI_FAST))
+
+    def level_set(self, action, how_far_ai_see, how_ai_fast):
+        """Check checkbox and set values for the level."""
+        self.level1.setChecked(False)
+        self.level2.setChecked(False)
+        self.level3.setChecked(False)
+        action.setChecked(True)
+        self.worldmor.set_how_fast_ai_is(how_ai_fast)
+        self.worldmor.set_ai_how_far_see(how_far_ai_see)
+
     def game_over(self):
         """Show dialog when the game end."""
         self.window.pause()
@@ -535,7 +554,6 @@ class App:
 
     def create_new_world(self):
         """Create WorldMor map with specific parameters for generating map."""
-        # TODO: Some level set can be done here (HOW_FAR_SEE, etc...)
         self.worldmor = Worldmor(rows=START_MAP_SIZE, random_seed=time.time(), bullets_exponent=BULLETS_EXPONENT,
                                  bullets_multiply=BULLETS_MULTIPLY, bullets_max_prob=BULLETS_MAX_PROB,
                                  health_exponent=HEALTH_EXPONENT, health_multiply=HEALTH_MULTIPLY,
