@@ -374,7 +374,7 @@ cdef class Worldmor:
                 code = self.map[row_min][col_min] % 100
                 if code == WALL:
                     check_health = self.get_health(self.map[row_min][col_min]) - strong
-                    if check_health < 0:
+                    if check_health <= 0:
                         kill = 2
                     else:
                         self.map[row_min][col_min] -= self.to_health(strong)
@@ -384,7 +384,7 @@ cdef class Worldmor:
                     break
                 if code == PLAYER:
                     check_health = self.get_health(self.map[row_min][col_min]) - strong
-                    if check_health < 0:
+                    if check_health <= 0:
                         kill = 1
                     else:
                         self.map[row_min][col_min] -= self.to_health(strong)
@@ -394,7 +394,7 @@ cdef class Worldmor:
                     break
                 if ENEMY_E >= code >= ENEMY_B:
                     check_health = self.get_health(self.map[row_min][col_min]) - strong
-                    if check_health < 0:
+                    if check_health <= 0:
                         kill = 1
                     else:
                         self.map[row_min][col_min] -= self.to_health(strong)
