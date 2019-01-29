@@ -399,6 +399,14 @@ class App:
                         QtWidgets.QPushButton)
         App.button_bind(dialog, 'exit', lambda: self.window.close(),
                         QtWidgets.QPushButton)
+
+        # Cant be tab order in game over dialog because for fast click the dialog can be clicked out.
+        # Work the shortcuts.
+        exit_shortcut = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_E), dialog)
+        exit_shortcut.activated.connect(lambda: self.dialog_close(dialog, self.exit_dialog))
+        new_shortcut = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_N), dialog)
+        new_shortcut.activated.connect(lambda: self.dialog_close(dialog, self.new_dialog))
+
         dialog.findChild(QtWidgets.QLabel, "score_label").setText("Score: %s" % self.tick_thread.score)
 
         dialog.exec()
