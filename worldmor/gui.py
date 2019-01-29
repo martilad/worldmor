@@ -361,9 +361,27 @@ class App:
     def game_over(self):
         """Show dialog when the game end."""
         self.window.pause()
-        #TODO: end game dialog
-        # TODO: need dialog after game, some with score or leader bord maybe?
-        print("end game dialog")
+
+        # Set the dialog window and show
+        dialog = QtWidgets.QDialog(self.window)
+        dialog.setWindowOpacity(.7)
+        path = QtGui.QPainterPath()
+        path.addRoundedRect(QtCore.QRectF(0, 0, 300, 300), 20, 20);
+
+        mask = QtGui.QRegion(path.toFillPolygon().toPolygon())
+        dialog.setMask(mask)
+        with open(App.get_gui_path('game_over.ui')) as f:
+            uic.loadUi(f, dialog)
+        dialog.setWindowFlag(QtCore.Qt.SplashScreen)
+        # Bind the buttons to actions
+        App.button_bind(dialog, 'new_2', lambda: self.dialog_close(dialog, self.new_dialog),
+                        QtWidgets.QPushButton)
+        App.button_bind(dialog, 'exit', lambda: self.window.close(),
+                        QtWidgets.QPushButton)
+        dialog.findChild(QtWidgets.QLabel, "score_label").setText("Score: %s" % self.tick_thread.score)
+
+
+        dialog.exec()
 
     def update_signal(self):
         """Connected function to signal in ticking thread for correct updates."""
