@@ -17,4 +17,16 @@ ABOUT = """<h1>WorldMor</h1>
         <br>
         <br>      
         <b>WorldMor</b> is licensed under the <b>GNU GPLv3</b>
-        """
+        <br>
+        <br>
+        The graphics used in this gui are Public Domain.
+        <br>
+        <b>Walls, grass and characters</b> come from the <a href="https://kenney.nl">Kenney</a> 
+        studio downloadable from <a href="https://opengameart.org/users/kenney">OpenGameArt.org</a>.
+        <br> 
+        <b>Guns</b> come from the <a href="https://opengameart.org/users/spriteattack">SpriteAttack</a> 
+        studio downloadable too from 
+        <a href="https://opengameart.org/content/gun-construction-kit/">OpenGameArt.org</a>.
+        <br>
+        Other images are downloaded from 
+        <a href="https://openclipart.org/">Openclipart</a> and edited."""
