@@ -4,19 +4,38 @@ WorldMor
 **WorldMor** is an application (game) write in Python using framework PyQt.
 It is created as a semestral work of **MI-PYT** course at **CTU in Prague**.
 
+In this game, it's an effort to get the best score on the map in the selected level.
+The map contains the crafts, bullets, weapons, and of course enemies, which is the task of destroying.
+The Enemies can also collect these items.
+With time when the distance from the start is more significant the count of objects on the map decreasing,
+and the number of enemies increasing. The game can also be played in fullscreen mode.
+There are three levels of difficulty that are specified by enemy surveillance and their speed.
+
+Installation
+-------------
+This game can be install from `Pypi <https://pypi.org>`_ using pip.
+Use following command: ``python -m pip install worldmor``
 
 Assignment
 -----------------
 
-The work aims to create a game that will take place on a 2D endless map. Your aim of the game will be to get the highest score.
+The work aims to create a game that will take place on a 2D endless map.
+Your aim of the game will be to get the highest score.
 
-The map itself is endless. Visibility is limited. The map finds opponents (TODO: name) controlled by some artificial intelligence (more likely to settle the difficulty). Their goal is your destruction of course, but they have more primitive weapons than you can find.
+The map itself is endless. Visibility is limited.
+The map finds aliens (opponents) controlled by some artificial intelligence (more likely to settle the difficulty).
+Their goal is your destruction of course, but they have more primitive weapons than you can find.
 
-The score can be obtained for the destruction of computer opponents. Some bonuses can also be placed on the map, where you can get points and weapons which can help you destroy computer opponents.
+The score can be obtained for the destruction of computer opponents.
+Some bonuses can also be placed on the map, where you can get points and
+weapons which can help you destroy computer opponents.
 
-Weapons will have a different range of damage which they can cause. Also, weapons will have a range. With the use of weapons, it is clear that everyone on the map will have his own life. This can be supplemented by some pharmacies.
+Weapons will have a different range of damage which they can cause.
+Also, weapons will have a range. With the use of weapons, it is clear
+that everyone on the map will have his own life. This can be supplemented by some pharmacies.
 
-With increasing time, the game will become more and more difficult, the number of opponents will increase, and the number of weapons, pharmacies on the map will decreasing.
+With increasing time, the game will become more and more difficult,
+the number of opponents will increase, and the number of weapons, pharmacies on the map will decreasing.
 
 Specifications:
 
@@ -25,6 +44,31 @@ Specifications:
 - Increasing skill on an endless map
 - Several levels of enemy intelligence
 - Some different types of weapons
+
+
+Build from repository
+------
+For editing and local use, it is also possible to download this repository and to bring the game directly from it.
+Try following commands:
+
+1. Clone **WorldMor** from `repository <https://github.com/martilad/worldmor>`_.
+2. Go into the cloned directory.
+3. Run ``python -m pip install -r requirements.txt``
+4. Use the following command to build Cython code for your system: ``python setup.py develop``
+5. Now you can run game using ``python -m worldmor``
+
+
+Documentation
+--------------
+The documentation can build using the following steps:
+
+1. Clone **WorldMor** from `repository <https://github.com/martilad/worldmor>`_.
+2. Go into the cloned directory.
+3. Run ``python -m pip install -r requirements.txt``
+4. Use the following command to build Cython code for your system: ``python setup.py develop``
+5. Go to **docs** directory inside the **WorldMor**.
+6. Run ``make html``
+7. You can find all of the .html files in _build/html directory
 
 
 License
