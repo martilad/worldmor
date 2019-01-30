@@ -13,8 +13,9 @@ There are three levels of difficulty that are specified by enemy surveillance an
 
 Installation
 -------------
-This game can be install from `Pypi <https://pypi.org>`_ using pip.
-Use following command: ``python -m pip install worldmor``
+- Game is released on `Pypi <https://pypi.org/project/worldmor/>`_.
+- This game can be install using pip.
+- Use following command: ``python -m pip install worldmor``
 
 Assignment
 -----------------
