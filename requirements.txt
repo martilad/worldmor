@@ -28,4 +28,3 @@ snowballstemmer==1.2.1
 Sphinx==1.8.3
 sphinxcontrib-websupport==1.1.0
 urllib3==1.24.1
--e git+git@github.com:martilad/worldmor.git@012f2f2e6e0c173964415b57ccb3f387c77bb0b7#egg=worldmor&subdirectory=../../worldmor
