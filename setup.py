@@ -1,7 +1,14 @@
 from setuptools import setup
 from setuptools import find_packages
 from distutils.core import Extension
-import numpy
+
+
+class get_numpy_include(object):
+    """Returns Numpy's include path with lazy import."""
+    def __str__(self):
+        import numpy
+        return numpy.get_include()
+
 
 with open('README.rst') as f:
     long_description = ''.join(f.readlines())
@@ -21,7 +28,7 @@ setup(
     packages=find_packages(),
     ext_modules = [module1],
     include_package_data=True,
-    include_dirs=[numpy.get_include()],
+    include_dirs=[get_numpy_include()],
     install_requires=[
         'numpy>=1.12.0',
         'Cython',
