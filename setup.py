@@ -1,6 +1,7 @@
 from setuptools import setup
 from setuptools import find_packages
 from distutils.core import Extension
+import numpy
 
 with open('README.rst') as f:
     long_description = ''.join(f.readlines())
@@ -20,6 +21,7 @@ setup(
     packages=find_packages(),
     ext_modules = [module1],
     include_package_data=True,
+    include_dirs=[numpy.get_include()],
     install_requires=[
         'numpy>=1.12.0',
         'Cython',
