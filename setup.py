@@ -5,7 +5,7 @@ from distutils.core import Extension
 with open('README.rst') as f:
     long_description = ''.join(f.readlines())
 
-module1 = Extension('worldmor.game.game', sources=['worldmor/game/game.pyx', 'worldmor/game/game.c'])
+module1 = Extension('worldmor.game.game', sources=['worldmor/game/game.pyx'])
 
 setup(
     name='worldmor',
