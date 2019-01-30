@@ -5,12 +5,12 @@ from distutils.core import Extension
 with open('README.rst') as f:
     long_description = ''.join(f.readlines())
 
-module1 = Extension('worldmor.game.game', sources=['worldmor/game/game.c'])
+module1 = Extension('worldmor.game.game', sources=['worldmor/game/game.pyx', 'worldmor/game/game.c'])
 
 setup(
     name='worldmor',
     license='GPLv3',
-    version='0.2.1',
+    version='0.2.2',
     description='Arcade 2D survival game.',
     long_description=long_description,
     author='Ladislav Martínek',

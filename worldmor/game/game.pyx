@@ -235,32 +235,34 @@ cdef class Worldmor:
         return (<unsigned long long> (gun / <unsigned long long>100000000000)) % 100
 
     cpdef void left(self):
-        """Set flag to want move left."""
+        """Set flag to want move left. In do_one_time_moment will be move done."""
         self.move_flag = 4
 
     cpdef void right(self):
-        """Set flag to want move right."""
+        """Set flag to want move right. In do_one_time_moment will be move done."""
         self.move_flag = 2
 
     cpdef void up(self):
-        """Set flag to want move up."""
+        """Set flag to want move up. In do_one_time_moment will be move done."""
         self.move_flag = 1
 
     cpdef void down(self):
-        """Set flag to want move down."""
+        """Set flag to want move down. In do_one_time_moment will be move done."""
         self.move_flag = 3
 
     cpdef void shoot(self):
-        """Set shoot flag to want shoot. 1 for shoot before move and 2 for shoot after move."""
+        """Set shoot flag for wanting shoot in this time moment. 
+        Flag 1 for shoot before move and 2 for shoot after move.
+        """
         if self.move_flag == 0:
             self.shoot_flag = 1
         else:
             self.shoot_flag = 2
 
     cpdef int do_one_time_moment(self):
-        """Method for doing move or shoot at a given time, for the player or for enemy.
-        Flags set between times and actions taken are checked. Even in this step, 
-        the AI will make some of their steps.
+        """The method does move or shoot at a given time, for the player and enemy.
+        Flags set between time and actions are checked for creating move or shoot. 
+        Even in this step are make the AI actions.
         """
         # check the set flags
 
@@ -725,7 +727,7 @@ cdef class Worldmor:
     @cython.wraparound(False)
     @cython.boundscheck(False)
     cpdef np.ndarray[np.int64_t, ndim=2] get_map_to_save(self):
-        """Return map as numpy array to save the game."""
+        """Return map as numpy array for possibility save the game."""
         cdef int i, j
         cdef np.ndarray[np.int64_t, ndim=2] map_view = np.zeros((self.rows, self.cols), dtype=np.int64)
         for i in range(self.rows):
@@ -734,45 +736,60 @@ cdef class Worldmor:
         return map_view
 
     cpdef int get_pos_row(self):
+        """Return row position of player."""
         return self.pos_row
 
     cpdef int get_pos_col(self):
+        """Return column position of player."""
         return self.pos_col
 
     cpdef int get_mid_row(self):
+        """Return row position of start position."""
         return self.mid_row
 
     cpdef int get_mid_col(self):
+        """Return column position of start position."""
         return self.mid_col
 
     cpdef int get_ai_how_far_see(self):
+        """Returns the value of how many boxes your enemies see."""
         return self.how_far_see_ai
 
     cpdef int get_how_fast_ai_is(self):
+        """Returns the value how many time moment wait ai for next action."""
         return self.how_long_between_turn_ai
 
     cpdef void set_pos_row(self, int pos_row):
+        """Set row position of player."""
         self.pos_row = pos_row
 
     cpdef void set_pos_col(self, int pos_col):
+        """Set column position of player."""
         self.pos_col = pos_col
 
     cpdef void set_mid_row(self, int mid_row):
+        """Set row position of start position."""
         self.mid_row = mid_row
 
     cpdef void set_mid_col(self, int mid_col):
+        """Set column position of start position."""
         self.mid_col = mid_col
 
     cpdef void set_ai_how_far_see(self, int how_far_see_ai):
+        """Set the value of how many boxes your enemies see."""
         self.how_far_see_ai = how_far_see_ai
 
     cpdef void set_how_fast_ai_is(self, int how_long_between_turn_ai):
+        """Set the value how many time moment wait ai for next action."""
         self.how_long_between_turn_ai = how_long_between_turn_ai
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
     cpdef void put_map_to_game(self, np.ndarray[np.int64_t, ndim=2] map_view):
-        """Load game from numpy array, when load game."""
+        """Load game from numpy array set the game map. 
+        For correctly load game need set other flags as the position of player and 
+        start middle of the map (for the distance from the start are count the difficulty and levels set need be set.
+        """
         free_mem(self.map, self.rows)
 
         cdef int i, j
