@@ -4,6 +4,9 @@ WorldMor
     :target: https://worldmor.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. image:: https://travis-ci.com/martilad/worldmor.svg?branch=master
+    :target: https://travis-ci.com/martilad/worldmor
+
 
 **WorldMor** is an application (game) write in Python using framework PyQt.
 It is created as a semestral work of **MI-PYT** course at **CTU in Prague**.
