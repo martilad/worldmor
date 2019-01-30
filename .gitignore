@@ -2,6 +2,7 @@
 __venv__
 build
 _build
+dist
 *egg*
 *.so
 *.c

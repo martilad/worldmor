@@ -1,15 +1,16 @@
 from setuptools import setup
-from Cython.Build import cythonize
 from setuptools import find_packages
-import numpy
+from distutils.core import Extension
 
 with open('README.rst') as f:
     long_description = ''.join(f.readlines())
 
+module1 = Extension('worldmor.game.game', sources=['worldmor/game/game.c'])
+
 setup(
     name='worldmor',
-    license='MIT',
-    version='0.0.1',
+    license='GPLv3',
+    version='0.2.1',
     description='Arcade 2D survival game.',
     long_description=long_description,
     author='Ladislav Martínek',
@@ -17,8 +18,8 @@ setup(
     keywords='Worldmor, game, arcade, survival',
     url='https://github.com/martilad/worldmor',
     packages=find_packages(),
-    ext_modules=cythonize('worldmor/worldmor.pyx', language_level=3),
-    include_dirs=[numpy.get_include()],
+    ext_modules = [module1],
+    include_package_data=True,
     install_requires=[
         'numpy>=1.12.0',
         'Cython',
@@ -42,7 +43,7 @@ setup(
     classifiers=[
         'Intended Audience :: Education',
         'Intended Audience :: Information Technology',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Framework :: Pytest',
         'Framework :: Sphinx',
         'Topic :: Games/Entertainment',
@@ -54,7 +55,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Natural Language :: English',
         'Topic :: Software Development',
-        'Development Status :: 1 - Planning',
+        'Development Status :: 3 - Alpha',
         ],
     zip_safe=False,
 )

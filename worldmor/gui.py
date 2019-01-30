@@ -3,14 +3,13 @@ import threading
 import time
 import json
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
-from worldmor.worldmor import *
 from worldmor.about import ABOUT
 from worldmor.constants import *
+from worldmor.game.game import *
 
 PICTURES = {"grass": GRASS, "wall": WALL, "blood": BLOOD, "player": PLAYER, "bullet": BULLET,
             "health": HEALTH, "e1": ENEMY_B, "e2": ENEMY_1, "e3": ENEMY_2, "e4": ENEMY_E,
             "g1": GUN_B, "g2": GUN_1, "g3": GUN_2, "g4": GUN_3, "g5": GUN_E, 'ex': EXPLODE}
-
 
 class TickThread(QtCore.QThread):
     """Tick thread class is class do the time moments in the game. In each time moment can move, shoot or both.

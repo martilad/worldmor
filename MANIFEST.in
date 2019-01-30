@@ -1,0 +1,3 @@
+recursive-include worldmor/game *
+recursive-include worldmor/gui *
+recursive-include worldmor/img *
