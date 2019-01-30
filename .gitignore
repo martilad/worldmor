@@ -1,6 +1,7 @@
 .idea
 __venv__
 build
+_build
 *egg*
 *.so
 *.c
