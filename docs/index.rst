@@ -20,27 +20,19 @@ WorldMor's documentation!
 
 Introduction
 ==================
-Beeclust is an algorithm to simulate the behavior of bees in the environment.
-The algorithm was introduced in the article
-`BEECLUST: A Swarm Algorithm Derived from
-Honeybees.
-Derivation of the Algorithm, Analysis by
-Mathematical Models
-and Implementation on a Robot Swarm
-<http://heikohamann.de/pub/schmickl_beeclust_2011.pdf>`_.
+**WorldMor** is an application (game) write in Python using framework PyQt.
+It is created as a semestral work of **MI-PYT** course at **CTU in Prague**.
 
-This algorithm is implemented as importable python class,
-in which is simulated the clustering. The algorithm is based on bee behavior in nature.
-Bees in nature swarm in places with ideal temperatures (approximately 32-38 °C).
-
-The algorithm can be easily used in practice for working with simple autonomous robots.
-The individual bees same as robots have no memory and information about the environment.
-Changes are based on some probabilities.
-Each bee cant meet other bee or barrier which stop it.
-If the bee does not move, its waiting time is temperature dependent.
+In this game, it's an effort to get the best score on the map in the selected level.
+The map contains the crafts, bullets, weapons, and of course enemies, which is the task of destroying.
+The Enemies can also collect these items.
+With time when the distance from the start is more significant the count of objects on the map decreasing,
+and the number of enemies increasing. The game can also be played in fullscreen mode.
+There are three levels of difficulty that are specified by enemy surveillance and their speed.
+The game also allows you to save and load the game for the later sequel.
 
 
-
+.. image:: _static/example.png
 
 Indices and tables
 ==================
