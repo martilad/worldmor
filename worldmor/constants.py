@@ -2,19 +2,19 @@
 CELL_SIZE = 70
 """Default cell size in grid."""
 
-MIN_CELL_SIZE = 60
+MIN_CELL_SIZE = 50
 """Minimum cell size in grid when zoom."""
 
-MAX_CELL_SIZE = 100
+MAX_CELL_SIZE = 90
 """Minimum cell size in grid when zoom."""
 
 ZOOM_CELL_STEP = 2
 """One step when turn the mouse wheel."""
 
-TICK_TIME = 0.1
+TICK_TIME = 0.07
 """One tick in game. Discrete time. With low tick can simulate continual time theoretical."""
 
-RENDER_RECT_SIZE = 500
+RENDER_RECT_SIZE = 700
 """Specifies how large the images from the SVG format will be rendered in pixels. 
 Higher resolution may slow down the game."""
 
@@ -30,13 +30,13 @@ CHECK_RANGE = 40
 HOW_FAR_SEE_AI = 3
 """What is the view range of AI enemies. 1 easy the dont see far, but with the same as VIEW_RANGE it is hard."""
 
-LEVEL_1_AI_SIGHT = 1
+LEVEL_1_AI_SIGHT = 2
 """View range of enemy on level 1"""
 
 LEVEL_1_AI_FAST = 9
 """Time section between AI action for level 1. 0-9. 9 -> slow. 0 -> fast as possible."""
 
-LEVEL_2_AI_SIGHT = 3
+LEVEL_2_AI_SIGHT = 4
 """View range of enemy on level 2"""
 
 LEVEL_2_AI_FAST = 6
