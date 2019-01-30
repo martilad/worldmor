@@ -1,5 +1,9 @@
 WorldMor
 =========
+.. image:: https://readthedocs.org/projects/worldmor/badge/?version=latest
+    :target: https://worldmor.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 
 **WorldMor** is an application (game) write in Python using framework PyQt.
 It is created as a semestral work of **MI-PYT** course at **CTU in Prague**.
@@ -61,7 +65,10 @@ Try following commands:
 
 Documentation
 --------------
-The documentation can build using the following steps:
+The documentation are build using `ReadTheDocs <https://readthedocs.org/>`_
+and you can find it at `WorldMorDoc <https://worldmor.readthedocs.io/en/latest/?badge=latest>`_
+
+Also the documentation can build using the following steps:
 
 1. Clone **WorldMor** from `repository <https://github.com/martilad/worldmor>`_.
 2. Go into the cloned directory.
