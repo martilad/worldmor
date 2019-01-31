@@ -82,7 +82,7 @@ def test_worldmor_code_convertors():
 def test_move_to_wall_position():
     """Test if wall block the move."""
     w = Worldmor(**get_data(), rows=4)
-    EMPTY_MAP[2, 0] = PLAYER
+    EMPTY_MAP[2, 0] = PLAYER + w.to_direction(1) + w.to_gun(GUN_B) + w.to_bullets(100) + w.to_health(1)
     EMPTY_MAP[1, 0] = WALL
     w.set_pos_row(2)
     w.set_pos_col(0)
