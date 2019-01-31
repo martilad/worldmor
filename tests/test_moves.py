@@ -1,14 +1,12 @@
-import pytest
-import numpy as np
 from worldmor.game.game import *
-from helpers import data
+from helpers import get_data
 from worldmor.constants import *
 
 EMPTY_MAP = np.zeros((5, 1), dtype=np.int64)
 
 def test_init_set_and_get_params():
     """Test init the class and correctly set these values."""
-    w = Worldmor(**data, rows=10)
+    w = Worldmor(**get_data(), rows=10)
     assert w.get_pos_row() == 5
     assert w.get_pos_col() == 5
     assert w.get_mid_row() == 5
@@ -30,7 +28,7 @@ def test_init_set_and_get_params():
 
 
 def test_move_left():
-    w = Worldmor(**data, rows=4)
+    w = Worldmor(**get_data(), rows=4)
     assert w.get_pos_row() == 2
     assert w.get_pos_col() == 2
     w.left()
@@ -40,7 +38,7 @@ def test_move_left():
 
 
 def test_move_down():
-    w = Worldmor(**data, rows=4)
+    w = Worldmor(**get_data(), rows=4)
     assert w.get_pos_row() == 2
     assert w.get_pos_col() == 2
     w.down()
@@ -50,7 +48,7 @@ def test_move_down():
 
 
 def test_move_up():
-    w = Worldmor(**data, rows=4)
+    w = Worldmor(**get_data(), rows=4)
     assert w.get_pos_row() == 2
     assert w.get_pos_col() == 2
     w.up()
@@ -60,7 +58,7 @@ def test_move_up():
 
 
 def test_move_right():
-    w = Worldmor(**data, rows=4)
+    w = Worldmor(**get_data(), rows=4)
     assert w.get_pos_row() == 2
     assert w.get_pos_col() == 2
     w.right()
@@ -70,7 +68,7 @@ def test_move_right():
 
 
 def test_worldmor_code_convertors():
-    w = Worldmor(**data, rows=4)
+    w = Worldmor(**get_data(), rows=4)
     code = 123456789876
     assert w.get_direction(code) == 3
     assert w.get_gun(code) == 12
@@ -83,7 +81,7 @@ def test_worldmor_code_convertors():
 
 def test_move_to_wall_position():
     """Test if wall block the move."""
-    w = Worldmor(**data, rows=4)
+    w = Worldmor(**get_data(), rows=4)
     EMPTY_MAP[2, 0] = PLAYER
     EMPTY_MAP[1, 0] = WALL
     w.set_pos_row(2)
@@ -99,7 +97,7 @@ def test_move_to_wall_position():
 
 def test_destroy_wall_position():
     """Test shoot after shoot before move to position of wall and test move to wall before shoot in one time moment"""
-    w = Worldmor(**data, rows=4)
+    w = Worldmor(**get_data(), rows=4)
     # add player direction, health, gun and bullets
     EMPTY_MAP[2, 0] = PLAYER + w.to_direction(1) + w.to_gun(GUN_B) + w.to_bullets(100) + w.to_health(1)
     EMPTY_MAP[1, 0] = WALL + w.to_health(1)
@@ -129,7 +127,7 @@ def test_destroy_wall_position():
 
 
 def test_move_and_pickup_for_bullets():
-    w = Worldmor(**data, rows=4)
+    w = Worldmor(**get_data(), rows=4)
     # add player direction, health, gun and bullets
     set_code = PLAYER + w.to_gun(GUN_B) + w.to_bullets(1) + w.to_health(1)
     EMPTY_MAP[2, 0] = set_code
@@ -157,7 +155,7 @@ def test_move_and_pickup_for_bullets():
 
 
 def test_move_and_pickup_for_health():
-    w = Worldmor(**data, rows=4)
+    w = Worldmor(**get_data(), rows=4)
     # add player direction, health, gun and bullets
     set_code = PLAYER + w.to_gun(GUN_B) + w.to_bullets(1) + w.to_health(1)
     EMPTY_MAP[2, 0] = set_code
@@ -185,7 +183,7 @@ def test_move_and_pickup_for_health():
 
 
 def test_move_and_pickup_for_gun():
-    w = Worldmor(**data, rows=4)
+    w = Worldmor(**get_data(), rows=4)
     # add player direction, health, gun and bullets
     set_code = PLAYER + w.to_gun(GUN_B) + w.to_bullets(1) + w.to_health(1)
     EMPTY_MAP[2, 0] = set_code
@@ -214,7 +212,7 @@ def test_move_and_pickup_for_gun():
 
 def test_killing_enemy():
     """Test if I can kill enemy and catch the points."""
-    w = Worldmor(**data, rows=4)
+    w = Worldmor(**get_data(), rows=4)
     # add player direction, health, gun and bullets
     set_code = PLAYER + w.to_direction(1) + w.to_gun(GUN_E) + w.to_bullets(100) + w.to_health(1)
     EMPTY_MAP[2, 0] = set_code
@@ -240,6 +238,3 @@ def test_killing_enemy():
     assert w.get_pos_col() == 0
     # Test field of position before are grass with visibility 1
     assert w.get_map_to_save()[2, 0] == 100
-
-
-

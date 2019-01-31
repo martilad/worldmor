@@ -1,7 +1,9 @@
 from collections import OrderedDict
 from worldmor.constants import *
 
-data = OrderedDict(random_seed=10, bullets_exponent=BULLETS_EXPONENT,
+
+def get_data():
+    return OrderedDict(random_seed=10, bullets_exponent=BULLETS_EXPONENT,
                    bullets_multiply=BULLETS_MULTIPLY, bullets_max_prob=BULLETS_MAX_PROB,
                    health_exponent=HEALTH_EXPONENT, health_multiply=HEALTH_MULTIPLY,
                    health_max_prob=HEALTH_MAX_PROB, enemy_start_probability=ENEMY_START_PROBABILITY,
@@ -11,5 +13,4 @@ data = OrderedDict(random_seed=10, bullets_exponent=BULLETS_EXPONENT,
                    go_for_player_ai_prob=GO_FOR_PLAYER_AI_PROB, go_for_gun_ai_prob=GO_FOR_GUN_AI_PROB,
                    go_for_health_ai_prob=GO_FOR_HEALTH_AI_PROB, view_range=VIEW_RANGE,
                    go_for_bullets_ai_prob=GO_FOR_BULLETS_AI_PROB, check_range=CHECK_RANGE)
-
 
