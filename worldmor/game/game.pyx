@@ -194,43 +194,43 @@ cdef class Worldmor:
     def __dealloc__(self):
         free_mem(self.map, self.rows)
 
-    cdef unsigned long long to_health(self, unsigned long long health):
+    cpdef unsigned long long to_health(self, unsigned long long health):
         """Convert health value to size(code) to save in map."""
         return health * 1000
 
-    cdef unsigned long long get_health(self, unsigned long long health):
+    cpdef unsigned long long get_health(self, unsigned long long health):
         """Get health value from size(code) to number for represent and work."""
         return (<unsigned long long> (health / 1000)) % 1000
 
-    cdef unsigned long long to_bullets(self, unsigned long long bullets):
+    cpdef unsigned long long to_bullets(self, unsigned long long bullets):
         """Convert bullets value to size(code) to save in map."""
         return bullets * 1000000
 
-    cdef unsigned long long get_bullets(self, unsigned long long bullets):
+    cpdef unsigned long long get_bullets(self, unsigned long long bullets):
         """Get bullets value from size(code) to number for represent and work."""
         return (<unsigned long long> (bullets / 1000000)) % 1000
 
-    cdef unsigned long long to_visible(self, unsigned long long visible):
+    cpdef unsigned long long to_visible(self, unsigned long long visible):
         """Convert visible value to size(code) to save in map."""
         return visible * 100
 
-    cdef unsigned long long get_visible(self, unsigned long long visible):
+    cpdef unsigned long long get_visible(self, unsigned long long visible):
         """Get visible value from size(code) to number for represent and work."""
         return (<unsigned long long> (visible / 100)) % 10
 
-    cdef unsigned long long to_direction(self, unsigned long long direction):
+    cpdef unsigned long long to_direction(self, unsigned long long direction):
         """Convert direction value to size(code) to save in map."""
         return direction * 1000000000
 
-    cdef unsigned long long get_direction(self, unsigned long long direction):
+    cpdef unsigned long long get_direction(self, unsigned long long direction):
         """Get direction value from size(code) to number for represent and work."""
         return (<unsigned long long> (direction / 1000000000)) % 10
 
-    cdef unsigned long long to_gun(self, unsigned long long gun):
+    cpdef unsigned long long to_gun(self, unsigned long long gun):
         """Convert gun id value to size(code) to save in map."""
         return gun * <unsigned long long>100000000000
 
-    cdef unsigned long long get_gun(self, unsigned long long gun):
+    cpdef unsigned long long get_gun(self, unsigned long long gun):
         """Get gun value from size(code) to number for represent and work."""
         return (<unsigned long long> (gun / <unsigned long long>100000000000)) % 100
 
