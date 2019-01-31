@@ -821,27 +821,27 @@ cdef class Worldmor:
                 and abs(column - self.pos_col) < self.view_range:
             return to_set + GRASS
 
-        if (rand() / <float> RAND_MAX) < (WALL_BASE_PROBABILITY / (WALL_DIVIDER_BASE ** abs(walls - 1))):
+        if (rand() / <float> RAND_MAX) <= (WALL_BASE_PROBABILITY / (WALL_DIVIDER_BASE ** abs(walls - 1))):
             return to_set + self.to_health(100) + WALL
 
-        if (rand() / <float> RAND_MAX) < min(self.bullets_max_prob,
+        if (rand() / <float> RAND_MAX) <= min(self.bullets_max_prob,
                                              (1 / (distance ** self.bullets_exponent)) * self.bullets_multiply):
             return to_set + BULLET
 
-        if (rand() / <float> RAND_MAX) < min(self.health_max_prob,
+        if (rand() / <float> RAND_MAX) <= min(self.health_max_prob,
                                              (1 / (distance ** self.health_exponent)) * self.health_multiply):
             return to_set + HEALTH
 
-        if (rand() / <float> RAND_MAX) < min(self.enemy_max_prob,
+        if (rand() / <float> RAND_MAX) <= min(self.enemy_max_prob,
                                              self.enemy_start_probability * (distance / self.enemy_distance_divider)):
             return to_set + self.to_health(100) + self.to_bullets(ENEMY_START_BULLETS)+ self.to_gun(GUN_B) + \
                    ((rand() % (ENEMY_E - ENEMY_B)) + ENEMY_B + 1)
 
-        if (rand() / <float> RAND_MAX) < min(self.guns_max_prob,
+        if (rand() / <float> RAND_MAX) <= min(self.guns_max_prob,
                                              (1 / (distance ** self.guns_exponent)) * self.guns_multiply):
             return to_set + ((rand() % (GUN_E - GUN_B)) + GUN_B + 1)
 
-        if (rand() / <float> RAND_MAX) < PROBABILITY_OF_FREE_POINTS:
+        if (rand() / <float> RAND_MAX) <= PROBABILITY_OF_FREE_POINTS:
             return to_set + BLOOD
 
         return to_set + 0
