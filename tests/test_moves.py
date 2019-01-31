@@ -4,6 +4,7 @@ from worldmor.constants import *
 
 EMPTY_MAP = np.zeros((5, 1), dtype=np.int64)
 
+
 def test_init_set_and_get_params():
     """Test init the class and correctly set these values."""
     w = Worldmor(**get_data(), rows=10)

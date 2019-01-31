@@ -4,6 +4,7 @@ import pytest
 
 TEST_SIZE = 300
 
+
 def test_generate_empty_map_with_walls():
     """Set all probabilities to 0 for items and test if there are only grass or walls."""
     data = get_data()
@@ -27,8 +28,8 @@ def test_generate_empty_map_with_walls():
 
 
 @pytest.mark.parametrize('params', (('bullets_max_prob', 'bullets_exponent', "bullets_multiply", BULLET, BULLET),
-                                  ('health_max_prob', 'health_exponent', "health_multiply", HEALTH, HEALTH),
-                                  ('guns_max_prob', 'guns_exponent', "guns_multiply", GUN_B, GUN_E)))
+                                    ('health_max_prob', 'health_exponent', "health_multiply", HEALTH, HEALTH),
+                                    ('guns_max_prob', 'guns_exponent', "guns_multiply", GUN_B, GUN_E)))
 def test_generate_map_only_with_items(params):
     """Set probability of items in parametrize to 1 test there are only the items and
     wall or blood for distance which is far as view range.
