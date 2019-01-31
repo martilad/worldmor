@@ -228,11 +228,11 @@ cdef class Worldmor:
 
     cpdef unsigned long long to_gun(self, unsigned long long gun):
         """Convert gun id value to size(code) to save in map."""
-        return gun * <unsigned long long>100000000000
+        return gun * <unsigned long long>10000000000
 
     cpdef unsigned long long get_gun(self, unsigned long long gun):
         """Get gun value from size(code) to number for represent and work."""
-        return (<unsigned long long> (gun / <unsigned long long>100000000000)) % 100
+        return (<unsigned long long> (gun / <unsigned long long>10000000000)) % 100
 
     cpdef void left(self):
         """Set flag to want move left. In do_one_time_moment will be move done."""

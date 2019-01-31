@@ -153,9 +153,9 @@ class GridWidget(QtWidgets.QWidget):
                     painter.drawImage(rect, self.images[BLOOD])
                 elif code == PLAYER:
                     painter.drawImage(rect, self.images[PLAYER])
-                    health = (int(w_map[row_r, column_r] / 1000)) % 1000
+                    health = self.worldmor.get_health(w_map[row_r, column_r])
                     self.tick_thread.health = health  # get health
-                    self.tick_thread.bullets = (int(w_map[row_r, column_r] / 1000000)) % 1000  # get bullets
+                    self.tick_thread.bullets = self.worldmor.get_bullets(w_map[row_r, column_r])
                     self.draw_health(x, y, health, painter)
                 elif code == BULLET:
                     # render three bullets
@@ -191,9 +191,9 @@ class GridWidget(QtWidgets.QWidget):
                 if visible > 2:
                     painter.drawImage(rect, self.images[EXPLODE])
                 if ENEMY_B <= code <= ENEMY_E or code == PLAYER:
-                    health = (int(w_map[row_r, column_r] / 1000)) % 1000
+                    health = self.worldmor.get_health(w_map[row_r, column_r])
                     self.draw_health(x, y, health, painter)
-                    gun = (int(w_map[row_r, column_r] / 100000000000)) % 100
+                    gun = self.worldmor.get_gun(w_map[row_r, column_r])
                     if GUN_B <= gun <= GUN_E:
                         painter.drawImage(QtCore.QRectF(x + self.cell_size / 3, y + self.cell_size / 3,
                                                         self.cell_size - self.cell_size / 3,
