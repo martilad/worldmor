@@ -13,12 +13,13 @@ class get_numpy_include(object):
 with open('README.rst') as f:
     long_description = ''.join(f.readlines())
 
+
 module1 = Extension('worldmor.game.game', sources=['worldmor/game/game.pyx'])
 
 setup(
     name='worldmor',
     license='GPLv3',
-    version='0.2.3',
+    version='0.3',
     description='Arcade 2D survival game.',
     long_description=long_description,
     author='Ladislav Martínek',
