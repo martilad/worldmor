@@ -323,7 +323,7 @@ cdef class Worldmor:
         cdef int bullets = self.get_bullets(self.map[row][col])
         cdef int gun = self.get_gun(self.map[row][col])
         cdef int down_bullets = self.get_bullets_dec(gun)
-        if bullets - down_bullets <= 0: return
+        if bullets - down_bullets < 0: return
         cdef int check_col, row_min, row_max, row_step = 1, col_min, col_max, col_step = 1, code, check_health
         cdef int kill = 0, br = 0, strong, distance
         # get gun parameters
@@ -574,7 +574,9 @@ cdef class Worldmor:
         cdef cord_move cords
         cdef int row_diff = 0, col_diff = 0, gun_shoot_range
         # enemy see the player move to kill or kill
-        if distance <= self.how_far_see_ai and <int>self.get_bullets(self.map[row][col]) > <int>self.get_bullets_dec(self.get_gun(self.map[row][col])):
+        if distance <= self.how_far_see_ai and \
+                <int>self.get_bullets(self.map[row][col]) >= \
+                <int>self.get_bullets_dec(self.get_gun(self.map[row][col])):
             gun_shoot_range = self.get_distance(self.get_gun(self.map[row][col]))
             if row == self.pos_row and abs(col - self.pos_col) <= gun_shoot_range:
                 if self.pos_col < col:
