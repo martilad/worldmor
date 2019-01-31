@@ -33,10 +33,6 @@ cpdef enum:
 """The probability of free points on map."""
 cdef double PROBABILITY_OF_FREE_POINTS = 0.002
 
-
-"""Start zone where are no items generated."""
-cdef int STARTING_PROTECTION_ZONE = 4
-
 """How many points add when collect blood."""
 cdef int ADD_POINTS = 10
 
@@ -821,8 +817,8 @@ cdef class Worldmor:
             to_set = self.to_visible(1)
         else:
             to_set = self.to_visible(0)
-        if abs(row - self.pos_row) < STARTING_PROTECTION_ZONE \
-                and abs(column - self.pos_col) < STARTING_PROTECTION_ZONE:
+        if abs(row - self.pos_row) < self.view_range \
+                and abs(column - self.pos_col) < self.view_range:
             return to_set + GRASS
 
         if (rand() / <float> RAND_MAX) < (WALL_BASE_PROBABILITY / (WALL_DIVIDER_BASE ** abs(walls - 1))):
