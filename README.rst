@@ -1,11 +1,19 @@
 WorldMor
 =========
+.. image:: https://img.shields.io/badge/license-GPLv3-blue.svg
+    :target: LICENSE
+    :alt: License
+
 .. image:: https://readthedocs.org/projects/worldmor/badge/?version=latest
     :target: https://worldmor.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
 .. image:: https://travis-ci.com/martilad/worldmor.svg?branch=master
     :target: https://travis-ci.com/martilad/worldmor
+
+.. image:: https://badge.fury.io/py/worldmor.svg
+    :target: https://badge.fury.io/py/worldmor
+    :alt: PyPi Version
 
 
 **WorldMor** is an application (game) write in Python using framework PyQt.
