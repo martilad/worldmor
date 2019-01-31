@@ -1,19 +1,8 @@
+=========
 WorldMor
 =========
-.. image:: https://img.shields.io/badge/license-GPLv3-blue.svg
-    :target: LICENSE
-    :alt: License
 
-.. image:: https://readthedocs.org/projects/worldmor/badge/?version=latest
-    :target: https://worldmor.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
-
-.. image:: https://travis-ci.com/martilad/worldmor.svg?branch=master
-    :target: https://travis-ci.com/martilad/worldmor
-
-.. image:: https://badge.fury.io/py/worldmor.svg
-    :target: https://badge.fury.io/py/worldmor
-    :alt: PyPi Version
+|license| |doc| |travis| |pypi|
 
 
 **WorldMor** is an application (game) write in Python using framework PyQt.
@@ -28,12 +17,13 @@ There are three levels of difficulty that are specified by enemy surveillance an
 
 Installation
 -------------
-- Game is released on `Pypi <https://pypi.org/project/worldmor/>`_.
+
+- Game is released on `Pypi`_.
 - This game can be install using pip.
 - Use following command: ``python -m pip install worldmor``
 
 Assignment
------------------
+-----------
 
 The work aims to create a game that will take place on a 2D endless map.
 Your aim of the game will be to get the highest score.
@@ -63,11 +53,12 @@ Specifications:
 
 
 Build from repository
-------
+-----------------------
+
 For editing and local use, it is also possible to download this repository and to bring the game directly from it.
 Try following commands:
 
-1. Clone **WorldMor** from `repository <https://github.com/martilad/worldmor>`_.
+1. Clone **WorldMor** from `repository`_.
 2. Go into the cloned directory.
 3. Run ``python -m pip install -r requirements.txt``
 4. Use the following command to build Cython code for your system: ``python setup.py develop``
@@ -76,12 +67,13 @@ Try following commands:
 
 Documentation
 --------------
-The documentation are build using `ReadTheDocs <https://readthedocs.org/>`_
-and you can find it at `WorldMorDoc <https://worldmor.readthedocs.io/en/latest/?badge=latest>`_
+
+The documentation are build using `ReadTheDocs`_
+and you can find it at `WorldMorDoc`_
 
 Also the documentation can build using the following steps:
 
-1. Clone **WorldMor** from `repository <https://github.com/martilad/worldmor>`_.
+1. Clone **WorldMor** from `repository`_.
 2. Go into the cloned directory.
 3. Run ``python -m pip install -r requirements.txt``
 4. Use the following command to build Cython code for your system: ``python setup.py develop``
@@ -94,3 +86,27 @@ License
 -------------
 
 This project is licensed under the **GNU GPLv3**.
+
+.. _repository: https://github.com/martilad/worldmor
+.. _Pypi: https://pypi.org/project/worldmor/
+.. _WorldMorDoc: https://worldmor.readthedocs.io/en/latest/?badge=latest
+.. _ReadTheDocs: https://readthedocs.org/
+
+
+.. |license| image:: https://img.shields.io/badge/license-GPLv3-blue.svg
+    :alt: License
+    :target: LICENSE
+
+
+.. |doc| image:: https://readthedocs.org/projects/worldmor/badge/?version=latest
+    :alt: Documentation Status
+    :target: https://worldmor.readthedocs.io/en/latest/?badge=latest
+
+
+.. |travis| image:: https://travis-ci.com/martilad/worldmor.svg?branch=master
+    :alt: PyPi Version
+    :target: https://travis-ci.com/martilad/worldmor
+
+.. |pypi| image:: https://badge.fury.io/py/worldmor.svg
+    :alt: Build Status
+    :target: https://badge.fury.io/py/worldmor
