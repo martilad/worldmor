@@ -19,7 +19,7 @@ module1 = Extension('worldmor.game.game', sources=['worldmor/game/game.pyx'])
 setup(
     name='worldmor',
     license='GPLv3',
-    version='0.3',
+    version='0.3.1',
     description='Arcade 2D survival game.',
     long_description=long_description,
     author='Ladislav Martínek',
