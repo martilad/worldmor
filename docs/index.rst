@@ -31,6 +31,12 @@ and the number of enemies increasing. The game can also be played in fullscreen 
 There are three levels of difficulty that are specified by enemy surveillance and their speed.
 The game also allows you to save and load the game for the later sequel.
 
+Control
+==========
+
+You can use WSAD or arrows to walk, and you can use Spacebar or 0 to shoot.
+The body always shoots in the direction of movement.
+
 
 .. image:: _static/example.png
 

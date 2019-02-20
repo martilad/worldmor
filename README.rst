@@ -22,8 +22,21 @@ Installation
 - This game can be install using pip.
 - Use following command: ``python -m pip install worldmor``
 
-Assignment
------------
+Control and aim of the game
+-----------------------------
+
+You can use WSAD or arrows to walk, and you can use Spacebar or 0 to shoot.
+The body always shoots in the direction of movement.
+
+The goal of the game is to destroy the enemy,
+after each destroyed extra-emblem, there is blood on the map that points,
+but the attention need not be collected by you alone.
+The game ends after you've been killed.
+The number of objects on the map drops to a minimum and the number of
+enemies increases with the distance from start, which will soon bring about an end.
+
+Semestral work assignment
+----------------------------
 
 The work aims to create a game that will take place on a 2D endless map.
 Your aim of the game will be to get the highest score.
