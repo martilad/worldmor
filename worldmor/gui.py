@@ -147,11 +147,7 @@ class GridWidget(QtWidgets.QWidget):
                     painter.fillRect(rect, QtGui.QBrush(QtGui.QColor(0, 0, 0, 150)))
                     continue
                 # Render pictures
-                if code == WALL:
-                    painter.drawImage(rect, self.images[WALL])
-                elif code == BLOOD:
-                    painter.drawImage(rect, self.images[BLOOD])
-                elif code == PLAYER:
+                if code == PLAYER:
                     painter.drawImage(rect, self.images[PLAYER])
                     health = self.worldmor.get_health(w_map[row_r, column_r])
                     self.tick_thread.health = health  # get health
@@ -170,24 +166,8 @@ class GridWidget(QtWidgets.QWidget):
                                                     self.cell_size - self.cell_size / 3,
                                                     self.cell_size - self.cell_size / 2),
                                       self.images[HEALTH])
-                elif code == ENEMY_B:
-                    painter.drawImage(rect, self.images[ENEMY_B])
-                elif code == ENEMY_1:
-                    painter.drawImage(rect, self.images[ENEMY_1])
-                elif code == ENEMY_2:
-                    painter.drawImage(rect, self.images[ENEMY_2])
-                elif code == ENEMY_E:
-                    painter.drawImage(rect, self.images[ENEMY_E])
-                elif code == GUN_B:
-                    painter.drawImage(rect, self.images[GUN_B])
-                elif code == GUN_1:
-                    painter.drawImage(rect, self.images[GUN_1])
-                elif code == GUN_2:
-                    painter.drawImage(rect, self.images[GUN_2])
-                elif code == GUN_3:
-                    painter.drawImage(rect, self.images[GUN_3])
-                elif code == GUN_E:
-                    painter.drawImage(rect, self.images[GUN_E])
+                else:
+                    painter.drawImage(rect, self.images[code])
                 if visible > 2:
                     painter.drawImage(rect, self.images[EXPLODE])
                 if ENEMY_B <= code <= ENEMY_E or code == PLAYER:
