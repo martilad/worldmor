@@ -8,7 +8,7 @@ Cython==0.29.2
 docutils==0.14
 idna==2.8
 imagesize==1.1.0
-Jinja2==2.10
+Jinja2>=2.10.1
 MarkupSafe==1.1.0
 more-itertools==5.0.0
 numpy==1.16.0
@@ -27,4 +27,4 @@ six==1.12.0
 snowballstemmer==1.2.1
 Sphinx==1.8.3
 sphinxcontrib-websupport==1.1.0
-urllib3==1.24.1
+urllib3>=1.24.2
